@@ -20,9 +20,9 @@ class ObjectList():
         self._ls = []
 
     def __repr__(self):
-        pre = "ObjectList of any type. Contains:"
+        pre = "%s of any type. Contains:" %self.__class__.__name__
         if self._type_limit != []:
-            pre = "ObjectList (%s)" %", ".join( self._type_limit ) + ". Contains:"
+            pre = "%s (%s)" %(self.__class__.__name__, ", ".join( self._type_limit )) + ". Contains:"
         return pre + "\n" +"_"*(len(pre)) +"\n" + "\n\t".join([i.__repr__() for i in self._ls])
 
 
@@ -32,10 +32,10 @@ class ObjectList():
             self._type_limit.append( o.type )
 
 
-    def add(self, *objs):
+    def add(self, *obj):
         rej = []
         com = []
-        for o in objs:
+        for o in obj:
             if self._type_limit != []:
                 if o.type in self._type_limit:
                     self._ls.append(o)
@@ -48,14 +48,6 @@ class ObjectList():
         print "Added %d items to list." %len(com)
         if len(rej)>0:
             print "Rejected %d restricted items of types: (%s)" %(len(rej), ", ".join([i.type for i in rej]))
-
-
-
-
-
-
-
-
 
 
 class Object(object):
