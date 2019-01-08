@@ -3,15 +3,16 @@ import sys
 import inspect
 
 from functools import partial
-from PySide2.QtCore import *
-from PySide2.QtWidgets import *
-from PySide2.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 import uuid
 import theme
-import aleksa
+import six
 
 
-'''
+
+''' 
 Can be viewed as objects with attributes. 
 Can be viewed as a dependency tree
 
@@ -300,7 +301,7 @@ class ItemList(QWidget):
         self.lw.setResizeMode(QListView.Adjust)
 
         self.cmd = {"object": ObjWidget}
-        for c, w in constraint_widgets().iteritems():
+        for c, w in six.iteritems(constraint_widgets()):
             self.cmd[c] = w
             self.add_item( c, c)
 
