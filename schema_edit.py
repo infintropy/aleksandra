@@ -3,9 +3,9 @@ import sys
 import inspect
 
 from functools import partial
-from PySide.QtCore import *
-#from PySide.QtWidgets import *
-from PySide.QtGui import *
+from PySide2.QtCore import *
+from PySide2.QtWidgets import *
+from PySide2.QtGui import *
 import uuid
 import theme
 import aleksa
@@ -39,6 +39,19 @@ ConstraintSet   |
 
 '''
 
+#GLOBAL VARS
+
+BUTTON_FONT = QFont()
+
+BUTTON_FONT.setFamily('Helvetica')
+BUTTON_FONT.setPointSize(13)
+
+
+
+
+
+
+
 def constraint_widgets():
     constraints = {}
     for name, obj in inspect.getmembers(sys.modules[__name__]):
@@ -58,6 +71,7 @@ class NameBadge(QWidget):
     def __init__(self, label=None):
         super(NameBadge, self).__init__()
         self.label = QToolButton()
+        self.label.setFont( BUTTON_FONT )
         self.label.setAutoRaise(True)
 
         self.fav = QToolButton(  )
@@ -65,7 +79,8 @@ class NameBadge(QWidget):
         self.fav.setCheckable(True)
 
         self.req = QToolButton()
-        self.req.setText("*")
+        self.req.setText("+")
+        
         self.req.setCheckable(True)
 
         self.menu = QMenu()
@@ -108,8 +123,7 @@ class EditLabel(QStackedWidget):
         super(EditLabel, self).__init__()
         self.label = NameBadge()
   
-        self.edit = QLineEdit()
-
+        self.edit = QLineEdit() 
 
         self.setMaximumHeight(20)
 
@@ -136,6 +150,7 @@ class EditLabel(QStackedWidget):
 class Constraint(QWidget):
     def __init__(self, **kwargs):
         super(Constraint, self).__init__(**kwargs)
+        self.id = str(uuid.uuid4())
         self.name = None
         self.meta_layout = QHBoxLayout()
         shrink_wrap(self.meta_layout, margin=2, spacing=5)
@@ -145,7 +160,7 @@ class Constraint(QWidget):
         self.master_layout = QVBoxLayout()
         self.meta_layout.addLayout(self.master_layout)
         self.setLayout(self.meta_layout)
-        shrink_wrap(self.master_layout)
+        shrink_wrap(self.master_layout, margin=5, spacing=5)
         self.title = EditLabel()
         self._name = None
         self.master_layout.addWidget(self.title, stretch=0)
@@ -156,16 +171,42 @@ class Constraint(QWidget):
         self._name = nm
         self.title.set_text( self._name )
 
+class List(Constraint):
+    def __init__(self, **kwargs):
+        super(List, self).__init__()
+        self.widget_1 = QListWidget()
+        for i in ["Task%d" %d for d in range(4)]:
+            it = QListWidgetItem(i)
+            it.setSizeHint(QSize(0, 35))
+            self.widget_1.addItem(it)
+        self.master_layout.addWidget(self.widget_1)
+        self.widget_1.setDragDropMode(QAbstractItemView.InternalMove)
+
+class Choice(Constraint):
+    def __init__(self, items=None, **kwargs):
+        super(Choice, self).__init__()
+        self.widget_1 = QComboBox()
+        if items:
+            self.widget_1.addItems(items)
+        else:
+            self.widget_1.addItems(["Choice%d" %d for d in range(5)])
+        self.master_layout.addWidget(self.widget_1)
+
+class Checkbox(Constraint):
+    def __init__(self, items=None, **kwargs):
+        super(Checkbox, self).__init__()
+        self.widget_1 = QCheckBox()
+        self.master_layout.addWidget(self.widget_1)
 
 
 class String(Constraint):
     def __init__(self, **kwargs):
         super(String, self).__init__(**kwargs)
-        self.id = str(uuid.uuid4())
+        
         self.widget_1 = QLineEdit()
         self.master_layout.addWidget(self.widget_1, stretch=0)
         self.master_layout.addStretch()
-        self.setMaximumHeight(60)
+
 
 
 class Number(Constraint):
@@ -179,10 +220,16 @@ class Number(Constraint):
 class Price(Constraint):
     def __init__(self, **kwargs):
         super(Price, self).__init__(**kwargs)
+        self.layout = QHBoxLayout()
+        shrink_wrap(self.layout, margin=0, spacing=0)
         self.id = str(uuid.uuid4())
+        self.symbol = QToolButton()
+        self.symbol.setText("$")
+        self.symbol.setFont(BUTTON_FONT)
         self.widget_1 = QSpinBox()
-        self.master_layout.addWidget(self.widget_1)
-
+        self.layout.addWidget(self.symbol)
+        self.layout.addWidget(self.widget_1)
+        self.master_layout.addLayout(self.layout)
 
 
 class CreationMenu(QMenu):
@@ -243,8 +290,8 @@ class ItemList(QWidget):
         self.lw = QListWidget()
         self.parent = parent
         self.ls = {}
-        self.setFixedWidth(250)
-        self.add_item()
+        self.setFixedWidth(500)
+
 
         self.title = QLineEdit('derp')
         self.master_layout.addWidget( self.title )
@@ -258,7 +305,7 @@ class ItemList(QWidget):
             self.add_item( c, c)
 
         
-    def add_item(self, name="Item", typ=None):
+    def add_item(self,  typ=None, name="Item"):
         if typ:
             if typ in self.cmd.keys():
                 o = self.cmd[typ]()
@@ -289,17 +336,33 @@ class Creator(QListWidget):
     def add_widget(self):
         pass
 
-class Window(QWidget):
+class Window(QMainWindow):
     def __init__(self):
         super(Window, self).__init__()
+        self.main = QWidget()
+        self.setCentralWidget(self.main)
         self.logo = QLabel("aleksandra")
         self.logo_font = QFont()
         self.logo_font.setPointSize(24) 
         self.logo_font.setFamily("Courier")
         self.logo.setFont(self.logo_font)
 
+        self.setWindowTitle('aleksandra')
+
         self.stacker1 = QStackedWidget()
         self.stack_level = {1: self.stacker1}
+
+
+        self.file_menu = QMenu(self.menuBar())
+        self.file_menu.setTitle("File")
+        self.act_open = QAction(self.file_menu)
+        self.act_open.setText("Open")
+        self.act_open.setShortcut("Ctrl+O")
+        self.file_menu.addAction(self.act_open)
+        self.setUnifiedTitleAndToolBarOnMac(True)
+
+        self.menuBar().addMenu( self.file_menu )
+
 
         self.add = QToolButton()
         self.add.setText("+")
@@ -307,13 +370,15 @@ class Window(QWidget):
         self.setMinimumWidth(700)
         self.setMinimumHeight(500)
 
-        self.add_menu = CreationMenu()
-
-
-
-
         self.master_layout = QVBoxLayout()
         self.il = ItemList(self)
+
+        self.add_menu = CreationMenu()
+        for a in self.add_menu.act.keys():
+            self.add_menu.act[a].triggered.connect(self.il.add_item)
+
+
+
         self.scroll = QScrollArea(alignment=Qt.Horizontal)
         self.mil_col_widget = QWidget()
 
@@ -332,7 +397,7 @@ class Window(QWidget):
         self.master_layout.addWidget( self.logo )
         self.master_layout.addWidget( self.add )
         self.master_layout.addWidget( self.scroll)
-        self.setLayout( self.master_layout )
+        self.main.setLayout( self.master_layout )
 
     def add_list(self):
 
@@ -340,6 +405,9 @@ class Window(QWidget):
         self.stack_level[ind] = ItemList(self)
         self.mil_col.insertWidget( len(self.stack_level.keys())-1, self.stack_level[ind] )
    
+    def update(self):
+        self.il.add_item()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
