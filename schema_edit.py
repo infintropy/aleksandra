@@ -3,9 +3,10 @@ import sys
 import inspect
 
 from functools import partial
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
+from PySide.QtCore import *
+#from PySide.QtWidgets import *
+from PySide.QtGui import *
+from PySide.QtSvg import *
 import uuid
 import theme
 import six
@@ -48,7 +49,7 @@ BUTTON_FONT.setFamily('Helvetica')
 BUTTON_FONT.setPointSize(13)
 
 
-
+ICON_EX = "C:/Users/dstrubler/material-design-icons/device/drawable-hdpi/ic_battery_charging_60_white_48dp.png"
 
 
 
@@ -67,6 +68,17 @@ def shrink_wrap(layout, margin=2, spacing=2):
     layout.setContentsMargins(margin,margin,margin,margin)
     layout.setSpacing(spacing)
 
+
+class Icon(QToolButton):
+    def __init__(self):
+        super(Icon, self).__init__()
+        self.setText("i")
+        self.ic = QIcon(ICON_EX)
+        
+        self.setIcon( self.ic )
+
+        self.setIconSize(QSize(30,30))
+        self.setAutoRaise(True)
 
 class NameBadge(QWidget):
     def __init__(self, label=None):
@@ -96,6 +108,8 @@ class NameBadge(QWidget):
         self.label.setText("button")
         self.master_layout = QHBoxLayout()
         self.master_layout.addWidget(self.label)
+
+
         self.master_layout.addStretch()
 
         self.master_layout.addWidget( self.req)
@@ -126,7 +140,9 @@ class EditLabel(QStackedWidget):
   
         self.edit = QLineEdit() 
 
-        self.setMaximumHeight(20)
+        self.setMaximumHeight(25)
+
+        self.label.label.setFont(BUTTON_FONT)
 
 
         self.addWidget( self.label)
@@ -136,6 +152,8 @@ class EditLabel(QStackedWidget):
 
         self.label.label.clicked.connect(self.edit_text)
         self.edit.editingFinished.connect( self.commit_text )
+
+
 
     def edit_text(self):
         self.setCurrentWidget( self.edit )
@@ -148,44 +166,80 @@ class EditLabel(QStackedWidget):
         self.label.label.setText(txt)
         self.edit.setText(txt)
 
+
+
+        
+
 class Constraint(QWidget):
-    def __init__(self, **kwargs):
+    def __init__(self, parent=None, **kwargs):
         super(Constraint, self).__init__(**kwargs)
+        self.parent = parent
         self.id = str(uuid.uuid4())
         self.name = None
         self.meta_layout = QHBoxLayout()
         shrink_wrap(self.meta_layout, margin=2, spacing=5)
         self.ctrl_dots = QLabel(" ::")
+        self.icon = Icon()
+
         self.meta_layout.addWidget(self.ctrl_dots)
+        self.meta_layout.addWidget(self.icon)
 
         self.master_layout = QVBoxLayout()
         self.meta_layout.addLayout(self.master_layout)
         self.setLayout(self.meta_layout)
-        shrink_wrap(self.master_layout, margin=5, spacing=5)
+        shrink_wrap(self.master_layout, margin=2, spacing=2)
         self.title = EditLabel()
         self._name = None
         self.master_layout.addWidget(self.title, stretch=0)
+        
+        #self.mouseReleaseEvent = self._emit_id
 
+        self.root = self.parent.parent
 
 
     def set_name(self, nm):
         self._name = nm
         self.title.set_text( self._name )
 
+            
+    
+    def _emit_id(self, event):
+        print(self.root.objects)
+
+
+
+
+
+
+
+
 class List(Constraint):
     def __init__(self, **kwargs):
-        super(List, self).__init__()
+        super(List, self).__init__(**kwargs)
+
+        self.ls = {}
         self.widget_1 = QListWidget()
         for i in ["Task%d" %d for d in range(4)]:
-            it = QListWidgetItem(i)
-            it.setSizeHint(QSize(0, 35))
-            self.widget_1.addItem(it)
+            self.add_item()
+
         self.master_layout.addWidget(self.widget_1)
         self.widget_1.setDragDropMode(QAbstractItemView.InternalMove)
 
+    def add_item(self, name="Item"):
+        o = ObjWidget(parent=self)
+        self.ls[o.id] = {}
+        self.ls[o.id]['widget'] = o
+        self.ls[o.id]['item_widget'] = QListWidgetItem()
+        self.ls[o.id]['item_widget'].setSizeHint(self.ls[o.id]["widget"].sizeHint())
+        self.ls[o.id]['item_widget'].setSizeHint(QSize( 0, 35 ))
+        self.widget_1.addItem(self.ls[o.id]['item_widget'])
+        self.widget_1.setItemWidget( self.ls[o.id]['item_widget'], self.ls[o.id]['widget']) 
+        self.root.add( o )
+
+
 class Choice(Constraint):
     def __init__(self, items=None, **kwargs):
-        super(Choice, self).__init__()
+        super(Choice, self).__init__(**kwargs)
         self.widget_1 = QComboBox()
         if items:
             self.widget_1.addItems(items)
@@ -195,20 +249,28 @@ class Choice(Constraint):
 
 class Checkbox(Constraint):
     def __init__(self, items=None, **kwargs):
-        super(Checkbox, self).__init__()
+        super(Checkbox, self).__init__(**kwargs)
         self.widget_1 = QCheckBox()
         self.master_layout.addWidget(self.widget_1)
 
 
-class String(Constraint):
+class TextLine(Constraint):
     def __init__(self, **kwargs):
-        super(String, self).__init__(**kwargs)
+        super(TextLine, self).__init__(**kwargs)
         
         self.widget_1 = QLineEdit()
         self.master_layout.addWidget(self.widget_1, stretch=0)
         self.master_layout.addStretch()
 
 
+class TextBlock(Constraint):
+    def __init__(self, **kwargs):
+        super(TextBlock, self).__init__(**kwargs)
+        
+        self.widget_1 = QPlainTextEdit()
+        self.master_layout.addWidget(self.widget_1, stretch=0)
+        self.master_layout.addStretch()
+        self.widget_1.setMaximumHeight(100)
 
 class Number(Constraint):
     def __init__(self, **kwargs):
@@ -246,55 +308,48 @@ class CreationMenu(QMenu):
 
 
 class ObjWidget(QWidget):
-    def __init__(self, name=None):
+
+    def __init__(self, parent=None, name=None):
         super(ObjWidget, self).__init__()
-        self.icon_layout = QHBoxLayout()
-        self.icon_layout.setSpacing(2)
-        self.title = QToolButton()
-
-        self.title_font = QFont()
-        self.title_font.setPointSize(14)
-        self.title_font.setFamily("Courier")
-        self.title.setAutoRaise(True)
-        #self.title.setSizePolicy(QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed))
-        self.title.setFont( self.title_font )
-        self.title.setText( str(name) )
-        self.title.setMinimumHeight(30)
-        self.derp = QPushButton("well derpy derpy")
-        self.tb = QToolButton()
-        self.tb.setText("V")
-        self.tb.setMinimumSize(46,46)
-        
+        self.parent = parent
         self.id = str(uuid.uuid4())
-
-        self.master_layout = QVBoxLayout()
-        shrink_wrap(self.master_layout)
-        self.icon_layout.addWidget(self.tb)
-        self.icon_layout.setSpacing(5)
-        self.icon_layout.addLayout(self.master_layout)
-        self.master_layout.setSpacing(2)
-        self.setLayout(self.icon_layout)
-
-        self.master_layout.addWidget(self.title)
-        self.master_layout.addWidget(self.derp)
-
+        self.master_layout = QHBoxLayout()
+        self.label = QLabel("Item")
+        self.master_layout.addWidget( self.label )
+        shrink_wrap(self.master_layout, margin=5, spacing=3)
+        self.setLayout( self.master_layout )
+        self.root = self.parent.parent.parent
+        self.mouseReleaseEvent = self._emit_id
+    
+    def _emit_id(self, event):
+        print(self.root.objects)
 
 class ItemList(QWidget):
     def __init__(self, parent=None):
 
         super(ItemList, self).__init__()
-
+        self.level = 1000
         self.master_layout = QVBoxLayout()
+        
+        self.id = str(uuid.uuid4())
 
         shrink_wrap(self.master_layout)
         self.setLayout( self.master_layout )
         self.lw = QListWidget()
         self.parent = parent
+        self.root = self.parent
         self.ls = {}
         self.setFixedWidth(500)
 
 
-        self.title = QLineEdit('derp')
+        self.title = EditLabel()
+        self.title_font = QFont()
+        self.title_font.setPointSize(15)
+        self.title.label.label.setFont(self.title_font)
+        self.title.label.label.setMinimumHeight(30)
+        self.title.label.label.setMaximumHeight(30)
+        self.title.setMinimumHeight(30)
+
         self.master_layout.addWidget( self.title )
         self.master_layout.addWidget( self.lw)
         self.lw.setDragDropMode(QAbstractItemView.InternalMove)
@@ -307,13 +362,13 @@ class ItemList(QWidget):
 
         
     def add_item(self,  typ=None, name="Item"):
+
         if typ:
             if typ in self.cmd.keys():
-                o = self.cmd[typ]()
+                o = self.cmd[typ](parent=self)
                 o.set_name(name)
-        else:
-            o = ObjWidget(name)
-        
+
+        self.root.add( o )
         self.ls[o.id] = {}
         self.ls[o.id]['widget'] = o
         self.ls[o.id]['item_widget'] = QListWidgetItem()
@@ -324,11 +379,6 @@ class ItemList(QWidget):
         self.lw.addItem(self.ls[o.id]['item_widget'])
         self.lw.setItemWidget( self.ls[o.id]['item_widget'], self.ls[o.id]['widget'])
 
-    def add_factory(self):
-        self.add_item(typ="object")
-
-    def add_number(self):
-        self.add_item(typ="number")
         
 class Creator(QListWidget):
     def __init__(self):
@@ -340,11 +390,30 @@ class Creator(QListWidget):
 class Window(QMainWindow):
     def __init__(self):
         super(Window, self).__init__()
+
+
+        """
+        STORE: for (x) object:
+        key=id +++++++++++++++
+        ++++++++++++++++++++++
+        dependency_list = ItemList id
+        parent_constraint = Constraint id
+
+
+        """
+
+        self.objects = {}
+        self.item_lists = {}
+        self.constraints = {}
+
+        
+
+
         self.main = QWidget()
         self.setCentralWidget(self.main)
         self.logo = QLabel("aleksandra")
         self.logo_font = QFont()
-        self.logo_font.setPointSize(24) 
+        self.logo_font.setPointSize(13) 
         self.logo_font.setFamily("Courier")
         self.logo.setFont(self.logo_font)
 
@@ -365,18 +434,19 @@ class Window(QMainWindow):
         self.menuBar().addMenu( self.file_menu )
 
 
-        self.add = QToolButton()
-        self.add.setText("+")
+        self.make = QToolButton()
+        self.make.setText("+")
 
         self.setMinimumWidth(700)
         self.setMinimumHeight(500)
 
         self.master_layout = QVBoxLayout()
         self.il = ItemList(self)
+        self.add( self.il )
 
         self.add_menu = CreationMenu()
         for a in self.add_menu.act.keys():
-            self.add_menu.act[a].triggered.connect(self.il.add_item)
+            self.add_menu.act[a].triggered.connect(partial(self.il.add_item, a))
 
 
 
@@ -391,19 +461,52 @@ class Window(QMainWindow):
         self.mil_col.addWidget(self.il)
         self.mil_col.addStretch()
 
-        self.add.setMenu( self.add_menu )
-        self.add.setPopupMode(QToolButton.InstantPopup)
+        self.make.setMenu( self.add_menu )
+        self.make.setPopupMode(QToolButton.InstantPopup)
 
  
         self.master_layout.addWidget( self.logo )
-        self.master_layout.addWidget( self.add )
+        self.master_layout.addWidget( self.make )
         self.master_layout.addWidget( self.scroll)
         self.main.setLayout( self.master_layout )
 
-    def add_list(self):
+    def add(self, item):
 
-        ind = len(self.stack_level.keys())+1
+        if issubclass(item.__class__, Constraint):
+            self.constraints[item.id] = {}
+            self.constraints[item.id]['widget'] = item
+            self.constraints[item.id]['parent'] = item.parent
+            return item
+
+        elif issubclass(item.__class__, ItemList):
+            self.item_lists[item.id] = {}
+            self.item_lists[item.id]['widget'] = item
+            self.item_lists[item.id]['column'] = 1000
+            return item
+
+        elif issubclass(item.__class__, ObjWidget):
+            self.objects[item.id] = {}
+            self.objects[item.id]['widget'] = item
+            self.objects[item.id]['constr'] = item.parent
+            return item
+
+
+
+
+    def obj_focus(self, obj):
+        pass
+
+    def add_list_to_col(self):
+        ind = len(self.stack_level.keys())+index
         self.stack_level[ind] = ItemList(self)
+        self.mil_col.insertWidget( len(self.stack_level.keys())-1, self.stack_level[ind] )
+   
+
+    def add_list(self, index=1):
+
+        ind = len(self.stack_level.keys())+index
+        self.stack_level[ind] = ItemList(self)
+        self.add( self.stack_level[ind] )
         self.mil_col.insertWidget( len(self.stack_level.keys())-1, self.stack_level[ind] )
    
     def update(self):
@@ -421,3 +524,9 @@ if __name__ == '__main__':
     window.show()
     app.exec_()
 
+"""
+Window > List Manager > List
+
+
+window.list[id].child()        
+"""
