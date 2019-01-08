@@ -48,6 +48,7 @@ def constraint_widgets():
                     constraints[obj.__name__] = obj
     return constraints
 
+#function to set content margins easily for layouts. 
 def shrink_wrap(layout, margin=2, spacing=2):
     layout.setContentsMargins(margin,margin,margin,margin)
     layout.setSpacing(spacing)
