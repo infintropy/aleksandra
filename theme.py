@@ -1,4 +1,4 @@
-from PySide.QtGui import QPalette, QColor
+from PyQt5.QtGui import QPalette, QColor
 
 def dark(app):
     """ Apply Dark Theme to the Qt application instance.
