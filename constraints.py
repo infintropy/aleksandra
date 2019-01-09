@@ -90,31 +90,3 @@ class Price(Constraint):
         self.master_layout.addLayout(self.layout)
 
 
-class CreationMenu(QMenu):
-    def __init__(self):
-        super(CreationMenu, self).__init__()
-        self.constraints = constraint_widgets()
-        self.act = {}
-
-        for k in sorted(self.constraints.keys()):
-            self.act[k] = QAction(self)
-            self.addAction( self.act[k] )
-            self.act[k].setText( k )
-
-
-class ObjWidget(QWidget):
-
-    def __init__(self, parent=None, name=None):
-        super(ObjWidget, self).__init__()
-        self.parent = parent
-        self.id = str(uuid.uuid4())
-        self.master_layout = QHBoxLayout()
-        self.label = QLabel("Item")
-        self.master_layout.addWidget( self.label )
-        shrink_wrap(self.master_layout, margin=5, spacing=3)
-        self.setLayout( self.master_layout )
-        self.root = self.parent.parent.parent
-        self.mouseReleaseEvent = self._emit_id
-    
-    def _emit_id(self, event):
-        print(self.root.objects)
