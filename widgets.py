@@ -9,7 +9,8 @@ import os
 import random
 
 
-ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
+#ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
+ICON_BASE = "C:/Users/dstrubler/Downloads/EmojiOne_4.0_128x128_png/EmojiOne_4.0_128x128_png"
 ICONS = os.listdir( ICON_BASE )
 
 #########
@@ -33,7 +34,7 @@ class Icon(QToolButton):
         super(Icon, self).__init__()
         self.setText("i")
         self.ic = QIcon("%s/%s" %(ICON_BASE, random.choice(ICONS)))
-        
+        #self.ic = QIcon()
         self.setIcon( self.ic )
 
         self.setIconSize(QSize(30,30))
@@ -142,6 +143,9 @@ class ObjWidget(QWidget):
     def _emit_id(self, event):
         print(self.root.objects)
 
+    def add_constraint(self, typ="List"):
+        cons = self.root.add_constraint(obj=self, typ=typ)
+
 class Constraint(QWidget):
     def __init__(self, parent=None, **kwargs):
         super(Constraint, self).__init__(**kwargs)
@@ -174,8 +178,8 @@ class Constraint(QWidget):
         self.master_layout.addWidget(self.title, stretch=0)
         
         #self.mouseReleaseEvent = self._emit_id
-
-        self.root = self.parent.parent
+        if parent:
+            self.root = self.parent.parent
 
 
     def set_name(self, nm):

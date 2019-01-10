@@ -14,14 +14,17 @@ class List(Constraint):
 
         self.ls = {}
         self.widget_1 = QListWidget()
-        for i in ["Task%d" %d for d in range(4)]:
-            self.add_item()
+        if kwargs.get("parent"):
+            for i in ["Task%d" %d for d in range(4)]:
+                self.add_item()
 
         self.master_layout.addWidget(self.widget_1)
         self.widget_1.setDragDropMode(QAbstractItemView.InternalMove)
 
     def add_item(self, name="Item"):
-        o = ObjWidget(parent=self)
+
+        o = self.root.add_object(constraint=self, name=name)
+
         self.ls[o.id] = {}
         self.ls[o.id]['widget'] = o
         self.ls[o.id]['item_widget'] = QListWidgetItem()
@@ -29,7 +32,7 @@ class List(Constraint):
         self.ls[o.id]['item_widget'].setSizeHint(QSize( 0, 35 ))
         self.widget_1.addItem(self.ls[o.id]['item_widget'])
         self.widget_1.setItemWidget( self.ls[o.id]['item_widget'], self.ls[o.id]['widget']) 
-        self.root.add( o )
+
 
 
 class Choice(Constraint):
