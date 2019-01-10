@@ -88,11 +88,11 @@ class ItemList(QWidget):
         self.setLayout( self.master_layout )
         self.lw = QListWidget()
         self.parent = parent
-        self.root = self.parent
+        
         self.ls = {}
         self.setFixedWidth(500)
 
-
+        
         self.title = EditLabel()
         self.title_font = QFont()
         self.title_font.setPointSize(15)
@@ -109,8 +109,9 @@ class ItemList(QWidget):
         self.cmd = {"object": ObjWidget}
         for c, w in six.iteritems(constraint_widgets()):
             self.cmd[c] = w
-            o = self.root.add_constraint( obj=self.root.root_obj, typ=c )
-            self.add_item(constraint=o)
+            if parent:
+                o = self.root.add_constraint( obj=self.root.root_obj, typ=c )
+                self.add_item(constraint=o)
         
     def add_item(self,  constraint=None):
         cons = constraint
@@ -124,6 +125,17 @@ class ItemList(QWidget):
         self.lw.addItem(self.ls[cons.id]['item_widget'])
         self.lw.setItemWidget( self.ls[cons.id]['item_widget'], self.ls[cons.id]['widget'])
 
+    def set_parent(self, parent=None):
+        if parent:
+            self.parent=parent
+            self.root = self.parent
+
+    def add_examples(self):
+
+        for c, w in six.iteritems(constraint_widgets()):
+
+            o = self.root.add_constraint( obj=self.root.root_obj, typ=c )
+            self.add_item(constraint=o)
 
         
 
@@ -170,14 +182,14 @@ class Window(QMainWindow):
         self.setWindowTitle('aleksandra')
 
 
-        self.root_item_list = ItemList(parent=None)
-        self.root_list = List(parent=None)
-        self.root_obj = ObjWidget(parent=self.root_list)
-        
+        self.root_item_list = ItemList()
+        #self.root_list = List()
+        self.root_obj = ObjWidget()
+
 
         self.file_menu = QMenu(self.menuBar())
         self.file_menu.setTitle("File")
-        self.act_open = QAction(self.file_menu)
+        self.act_open = QAction(self.file_menu) 
         self.act_open.setText("Open")
         self.act_open.setShortcut("Ctrl+O")
         self.file_menu.addAction(self.act_open)
@@ -195,7 +207,7 @@ class Window(QMainWindow):
         self.setMinimumHeight(500)
 
         self.master_layout = QVBoxLayout()
-        self.il = ItemList(self)
+        #self.il = ItemList(self)
 
         self.add_object(obj=self.root_obj, name='root' )
         self.objects[self.root_obj.id]['item_list'] = self.root_item_list.id
@@ -216,7 +228,7 @@ class Window(QMainWindow):
         
         self.scroll.setWidget(self.mil_col_widget)
         self.scroll.setWidgetResizable(True)
-        self.mil_col.addWidget(self.il)
+        self.mil_col.addWidget(self.root_item_list)
         self.mil_col.addStretch()
 
         self.make.setMenu( self.add_menu )
@@ -228,7 +240,19 @@ class Window(QMainWindow):
         self.master_layout.addWidget( self.scroll)
         self.main.setLayout( self.master_layout )
 
-    def get_object(self, id=None):
+        self.root_item_list.set_parent(parent=self)
+        self.root_list.set_parent()
+        self.root_item_list.add_examples()
+
+        print(self.objects)
+        print(self.constraints)
+        print(self.item_lists)
+
+        
+
+
+
+    def get_object(self, id=None):                                                      
         pass
     
     def get_constraint(self, id=None):
@@ -309,8 +333,8 @@ class Window(QMainWindow):
                 print('obj added!')
                 return item
 
-
-    
+    def object_focus(self, id): 
+        print('focusing on object %s' %id)
 
     def obj_focus(self, obj):
         pass
@@ -341,6 +365,7 @@ if __name__ == '__main__':
     theme.dark(app)
 
     window.show()
+
     app.exec_()
 
 """

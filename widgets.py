@@ -9,8 +9,8 @@ import os
 import random
 
 
-#ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
-ICON_BASE = "C:/Users/dstrubler/Downloads/EmojiOne_4.0_128x128_png/EmojiOne_4.0_128x128_png"
+ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
+#ICON_BASE = "C:/Users/dstrubler/Downloads/EmojiOne_4.0_128x128_png/EmojiOne_4.0_128x128_png"
 ICONS = os.listdir( ICON_BASE )
 
 #########
@@ -137,11 +137,20 @@ class ObjWidget(QWidget):
         self.master_layout.addWidget( self.label )
         shrink_wrap(self.master_layout, margin=5, spacing=3)
         self.setLayout( self.master_layout )
-        self.root = self.parent.parent.parent
+        if parent:
+            self.set_root()
         self.mouseReleaseEvent = self._emit_id
     
+    def set_parent(self, parent=None):
+        if parent:
+            self.parent=parent
+            self.root = self.parent.parent.parent
+
     def _emit_id(self, event):
         print(self.root.objects)
+
+    def object_focus(self):
+        self.root.object_focus(self.id)
 
     def add_constraint(self, typ="List"):
         cons = self.root.add_constraint(obj=self, typ=typ)
@@ -179,14 +188,17 @@ class Constraint(QWidget):
         
         #self.mouseReleaseEvent = self._emit_id
         if parent:
-            self.root = self.parent.parent
+            self.set_parent()
 
 
     def set_name(self, nm):
         self._name = nm
         self.title.set_text( self._name )
 
-            
+    def set_parent(self, parent=None):
+        if parent:
+            self.parent=  parent
+            self.root = self.parent.parent
     
     def _emit_id(self, event):
         print(self.root.objects)
