@@ -83,11 +83,11 @@ class ItemList(QWidget):
         self.master_layout = QVBoxLayout()
         
         self.id = str(uuid.uuid4())
-
+        self.parent = parent
         shrink_wrap(self.master_layout)
         self.setLayout( self.master_layout )
         self.lw = QListWidget()
-        self.parent = parent
+        self.root = self.parent
         
         self.ls = {}
         self.setFixedWidth(500)
@@ -183,8 +183,11 @@ class Window(QMainWindow):
 
 
         self.root_item_list = ItemList()
-        #self.root_list = List()
+        self.root_list = List()
         self.root_obj = ObjWidget()
+
+        self.add_object(obj=self.root_obj, constraint=self.root_list)
+        self.add_constraint(constraint=self.root_list, obj=None)
 
 
         self.file_menu = QMenu(self.menuBar())
@@ -196,7 +199,7 @@ class Window(QMainWindow):
         self.setUnifiedTitleAndToolBarOnMac(True)
 
         self.menuBar().addMenu( self.file_menu )
-
+        self.stack_level = {}
 
 
 
@@ -209,8 +212,8 @@ class Window(QMainWindow):
         self.master_layout = QVBoxLayout()
         #self.il = ItemList(self)
 
-        self.add_object(obj=self.root_obj, name='root' )
-        self.objects[self.root_obj.id]['item_list'] = self.root_item_list.id
+    
+
 
         self.add_menu = CreationMenu()
         for a in list(self.add_menu.act.keys()):
@@ -240,13 +243,12 @@ class Window(QMainWindow):
         self.master_layout.addWidget( self.scroll)
         self.main.setLayout( self.master_layout )
 
-        self.root_item_list.set_parent(parent=self)
-        self.root_list.set_parent()
-        self.root_item_list.add_examples()
 
         print(self.objects)
         print(self.constraints)
         print(self.item_lists)
+
+        self.add_item_list(obj=self.root_obj)
 
         
 
@@ -262,6 +264,24 @@ class Window(QMainWindow):
         pass
 
 
+    def add_item_list(self, item_list=None, obj=None):
+        """
+        This will be where you manage your item scroll lists in in-place
+        dimension, as well as their horizontal dimension. 
+
+        parent= object
+
+        """
+        if not item_list:
+            item_list = ItemList(parent=self)
+        self.item_lists[item_list.id] = {}
+        self.item_lists[item_list.id]['widget'] = item_list
+        self.item_lists[item_list.id]['objlink'] = obj.id
+        self.add_list(item_list)
+
+        print("made object list!")
+        return item_list
+
     def add_object(self, obj=None, constraint=None, name="Item"):
         """
         Method for adding an item to a provided List constraint or adding it to the root list. 
@@ -270,16 +290,16 @@ class Window(QMainWindow):
         if not constraint:
             cons = self.root_list
         if not obj:
-            obj = ObjWidget(parent=cons)
-        else:
-            self.objects[obj.id] = {}
-            self.objects[obj.id]['widget'] = obj
-            self.objects[obj.id]['parent'] = cons.id
-            self.objects[obj.id]['item_list'] = None
-            print('obj added!')
+            obj = ObjWidget(parent=self)
+
+        self.objects[obj.id] = {}
+        self.objects[obj.id]['widget'] = obj
+        self.objects[obj.id]['parent'] = cons.id
+        self.objects[obj.id]['item_list'] = None
+        print('obj added!')
         return obj
         
-    def add_constraint(self,  obj=None, constraint=None, typ="List"):
+    def add_constraint(self,  constraint=None, obj=None,  typ="List"):
         """
         Adding a constraint to an object 
         """
@@ -287,12 +307,12 @@ class Window(QMainWindow):
         if not obj:
             obj = self.root_obj
         if not constraint:
-            cons = self.cmd[typ](parent=obj)
-        else:
-            self.constraints[cons.id] = {}
-            self.constraints[cons.id]['widget'] = cons
-            self.constraints[cons.id]['parent'] = obj.id
-            print('constraint added!')
+            cons = self.cmd[typ](parent=self)
+
+        self.constraints[cons.id] = {}
+        self.constraints[cons.id]['widget'] = cons
+        self.constraints[cons.id]['parent'] = obj.id
+        print('constraint added!')
         return cons
 
 
@@ -339,17 +359,20 @@ class Window(QMainWindow):
     def obj_focus(self, obj):
         pass
 
-    def add_list_to_col(self):
+    def add_list_to_col(self, item_list=None):
         ind = len(self.stack_level.keys())+index
-        self.stack_level[ind] = ItemList(self)
+        if not item_list:
+            item_list = ItemList(self)
+        self.stack_level[ind] = item_list
         self.mil_col.insertWidget( len(self.stack_level.keys())-1, self.stack_level[ind] )
    
 
-    def add_list(self, index=1):
+    def add_list(self, item_list=None, index=1):
 
         ind = len(self.stack_level.keys())+index
-        self.stack_level[ind] = ItemList(self)
-        self.add( self.stack_level[ind] )
+        if not item_list:
+            item_list = ItemList(self)
+        self.stack_level[ind] = item_list
         self.mil_col.insertWidget( len(self.stack_level.keys())-1, self.stack_level[ind] )
    
     def update(self):

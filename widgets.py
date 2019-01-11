@@ -131,20 +131,17 @@ class ObjWidget(QWidget):
     def __init__(self, parent=None, name=None):
         super(ObjWidget, self).__init__()
         self.parent = parent
+        self.root = self.parent
         self.id = str(uuid.uuid4())
         self.master_layout = QHBoxLayout()
         self.label = QLabel("Item")
         self.master_layout.addWidget( self.label )
         shrink_wrap(self.master_layout, margin=5, spacing=3)
         self.setLayout( self.master_layout )
-        if parent:
-            self.set_root()
+
         self.mouseReleaseEvent = self._emit_id
     
-    def set_parent(self, parent=None):
-        if parent:
-            self.parent=parent
-            self.root = self.parent.parent.parent
+
 
     def _emit_id(self, event):
         print(self.root.objects)
@@ -159,6 +156,7 @@ class Constraint(QWidget):
     def __init__(self, parent=None, **kwargs):
         super(Constraint, self).__init__(**kwargs)
         self.parent = parent
+        self.root = self.parent
         self.id = str(uuid.uuid4())
         self.name = None
         self.meta_layout = QHBoxLayout()
@@ -187,18 +185,14 @@ class Constraint(QWidget):
         self.master_layout.addWidget(self.title, stretch=0)
         
         #self.mouseReleaseEvent = self._emit_id
-        if parent:
-            self.set_parent()
+
 
 
     def set_name(self, nm):
         self._name = nm
         self.title.set_text( self._name )
 
-    def set_parent(self, parent=None):
-        if parent:
-            self.parent=  parent
-            self.root = self.parent.parent
+
     
     def _emit_id(self, event):
         print(self.root.objects)
