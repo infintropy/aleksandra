@@ -16,35 +16,6 @@ from widgets import *
 
 
 
-''' 
-Can be viewed as objects with attributes. 
-Can be viewed as a dependency tree
-
-Users will interact with a constraint tree:
-    Contraint = Frame Range
-    Contraint_features = <start, 
-                          end>
-    Constraint_img = "Film time.png"
-    Constraint_valid
-
-
-
-Shot ___________|
-________________|
-Frame Range     | 
-[             ] |
-________________|
-ConstraintSet   |
-[             ] |
-
-
-
-
-
-
-'''
-
-
 
 
 
@@ -79,9 +50,8 @@ class ItemList(QWidget):
     def __init__(self, parent=None):
 
         super(ItemList, self).__init__()
-        self.level = 1000
+        self.level = 9000
         self.master_layout = QVBoxLayout()
-        
         self.id = str(uuid.uuid4())
         self.parent = parent
         shrink_wrap(self.master_layout)
@@ -167,8 +137,8 @@ class Window(QMainWindow):
         self.context_object = None
 
 
-        self._col_start = 1000
-        self.metacol = {self._col_start: QStackedWidget()}
+        self._col_start = 9000
+        self.metacol = {}
 
 
         self.main = QWidget()
@@ -217,9 +187,9 @@ class Window(QMainWindow):
 
         self.add_menu = CreationMenu()
         for a in list(self.add_menu.act.keys()):
-            pass
-            #self.add_menu.act[a].triggered.connect(partial(self.il.add_item, a))
 
+            #self.add_menu.act[a].triggered.connect(partial(self.add_constraint, None, None))
+            pass
 
 
 
@@ -227,12 +197,13 @@ class Window(QMainWindow):
         self.mil_col_widget = QWidget()
 
         self.mil_col = QHBoxLayout(self.mil_col_widget)
-        shrink_wrap(self.mil_col)
         
+        shrink_wrap(self.mil_col)
+        self.mil_col.setAlignment(Qt.AlignLeft)
         self.scroll.setWidget(self.mil_col_widget)
         self.scroll.setWidgetResizable(True)
-        self.mil_col.addWidget(self.root_item_list)
-        self.mil_col.addStretch()
+        
+
 
         self.make.setMenu( self.add_menu )
         self.make.setPopupMode(QToolButton.InstantPopup)
@@ -248,9 +219,10 @@ class Window(QMainWindow):
         print(self.constraints)
         print(self.item_lists)
 
-        self.add_item_list(obj=self.root_obj)
 
-        
+
+        self.add_item_list(obj=self.root_obj)
+        #self.add_constraint(obj=self.root_obj)
 
 
 
@@ -264,7 +236,26 @@ class Window(QMainWindow):
         pass
 
 
-    def add_item_list(self, item_list=None, obj=None):
+
+    def show_object_item_list(self, obj):
+        if type(obj)==str:
+            odict = self.objects[obj]
+        else:
+            odict = self.objects[obj.id]
+        o = odict['widget']
+        if odict["item_list"]:
+            self.metacol[o.level+1].setCurrentWidget( self.item_lists[ self.objects[obj.id]['item_list']]['widget'] )
+        else:
+            print("doesnt have an item list")
+            self.add_item_list(obj=o, index=1)
+
+
+
+
+
+
+
+    def add_item_list(self, item_list=None, obj=None, index=0):
         """
         This will be where you manage your item scroll lists in in-place
         dimension, as well as their horizontal dimension. 
@@ -272,17 +263,31 @@ class Window(QMainWindow):
         parent= object
 
         """
+        print ("inside add item list. currently obj level %d" %obj.level)
+        if not obj:
+            obj = self.root_obj
+
+        level = obj.level+index
+        
         if not item_list:
             item_list = ItemList(parent=self)
         self.item_lists[item_list.id] = {}
         self.item_lists[item_list.id]['widget'] = item_list
         self.item_lists[item_list.id]['objlink'] = obj.id
-        self.add_list(item_list)
+        self.objects[obj.id]["item_list"] = item_list.id
+        #self.add_list(item_list)
 
-        print("made object list!")
+        if not self.metacol.get(level):
+            print("MAKING NEW STACKER %d" %level)
+            self.metacol[level] = QStackedWidget()
+            stack = self.metacol[level]
+        self.metacol[level].addWidget( self.item_lists[item_list.id]['widget'] )
+        self.metacol[level].setCurrentWidget(  self.item_lists[item_list.id]['widget'] )
+        self.mil_col.addWidget(self.metacol[level])
+        print(self.metacol)
         return item_list
 
-    def add_object(self, obj=None, constraint=None, name="Item"):
+    def add_object(self, obj=None, constraint=None, name="Item", index=0):
         """
         Method for adding an item to a provided List constraint or adding it to the root list. 
         """
@@ -291,12 +296,15 @@ class Window(QMainWindow):
             cons = self.root_list
         if not obj:
             obj = ObjWidget(parent=self)
-
+        obj.level = cons.level
+        if index:
+            obj.level+=index
         self.objects[obj.id] = {}
         self.objects[obj.id]['widget'] = obj
         self.objects[obj.id]['parent'] = cons.id
         self.objects[obj.id]['item_list'] = None
-        print('obj added!')
+        self.objects[obj.id]['level'] = obj.level
+
         return obj
         
     def add_constraint(self,  constraint=None, obj=None,  typ="List"):
@@ -309,10 +317,14 @@ class Window(QMainWindow):
         if not constraint:
             cons = self.cmd[typ](parent=self)
 
+        cons.level = obj.level
         self.constraints[cons.id] = {}
         self.constraints[cons.id]['widget'] = cons
         self.constraints[cons.id]['parent'] = obj.id
-        print('constraint added!')
+        
+
+        item_list = self.objects[obj.id]['item_list']
+
         return cons
 
 

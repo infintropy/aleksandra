@@ -9,8 +9,8 @@ import os
 import random
 
 
-ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
-#ICON_BASE = "C:/Users/dstrubler/Downloads/EmojiOne_4.0_128x128_png/EmojiOne_4.0_128x128_png"
+#ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
+ICON_BASE = "C:/Users/dstrubler/Downloads/EmojiOne_4.0_128x128_png/EmojiOne_4.0_128x128_png"
 ICONS = os.listdir( ICON_BASE )
 
 #########
@@ -113,8 +113,6 @@ class EditLabel(QStackedWidget):
         self.label.label.clicked.connect(self.edit_text)
         self.edit.editingFinished.connect( self.commit_text )
 
-
-
     def edit_text(self):
         self.setCurrentWidget( self.edit )
 
@@ -132,6 +130,7 @@ class ObjWidget(QWidget):
         super(ObjWidget, self).__init__()
         self.parent = parent
         self.root = self.parent
+        self.level = 9000
         self.id = str(uuid.uuid4())
         self.master_layout = QHBoxLayout()
         self.label = QLabel("Item")
@@ -144,7 +143,8 @@ class ObjWidget(QWidget):
 
 
     def _emit_id(self, event):
-        print(self.root.objects)
+        self.root.show_object_item_list(self)
+        #print("looking to tell the proper column stack (%d) to show the right list associated with the object: %s" %(self.level, self.id ))
 
     def object_focus(self):
         self.root.object_focus(self.id)
@@ -155,7 +155,12 @@ class ObjWidget(QWidget):
 class Constraint(QWidget):
     def __init__(self, parent=None, **kwargs):
         super(Constraint, self).__init__(**kwargs)
+        self.color_bar = QWidget()
+        self.level = 9000
+        self.color_bar.setFixedWidth(2)
+        self.set_color("orange")
         self.parent = parent
+        
         self.root = self.parent
         self.id = str(uuid.uuid4())
         self.name = None
@@ -164,10 +169,11 @@ class Constraint(QWidget):
         self.ctrl_dots = QLabel(" ::")
         self.grab_layout = QVBoxLayout()
         self.icon_layout = QVBoxLayout()
-        self.grab_layout.setContentsMargins(0,10,0,0)
+        self.grab_layout.setContentsMargins(0,15,0,0)
         self.icon_layout.setContentsMargins(0,5,0,0)
         self.icon = Icon()
 
+        self.meta_layout.addWidget(self.color_bar)
         self.meta_layout.addLayout(self.grab_layout)
         self.meta_layout.addLayout(self.icon_layout)
 
@@ -186,11 +192,14 @@ class Constraint(QWidget):
         
         #self.mouseReleaseEvent = self._emit_id
 
-
+    def set_color(self, color):
+        self.color_bar.setStyleSheet("background-color:%s;" %color)
 
     def set_name(self, nm):
         self._name = nm
         self.title.set_text( self._name )
+
+    
 
 
     
