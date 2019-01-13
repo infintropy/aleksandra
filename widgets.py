@@ -9,8 +9,8 @@ import os
 import random
 
 
-#ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
-ICON_BASE = "C:/Users/dstrubler/Downloads/EmojiOne_4.0_128x128_png/EmojiOne_4.0_128x128_png"
+ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
+#ICON_BASE = "C:/Users/dstrubler/Downloads/EmojiOne_4.0_128x128_png/EmojiOne_4.0_128x128_png"
 ICONS = os.listdir( ICON_BASE )
 
 #########
@@ -126,11 +126,12 @@ class EditLabel(QStackedWidget):
 
 class ObjWidget(QWidget):
 
-    def __init__(self, parent=None, name=None):
+    def __init__(self, parent=None, name=None, level=9000):
         super(ObjWidget, self).__init__()
         self.parent = parent
         self.root = self.parent
-        self.level = 9000
+        self.level = level
+        print("Object being created. Level %d" %self.level)
         self.id = str(uuid.uuid4())
         self.master_layout = QHBoxLayout()
         self.label = QLabel("Item")
@@ -144,7 +145,7 @@ class ObjWidget(QWidget):
 
     def _emit_id(self, event):
         self.root.show_object_item_list(self)
-        #print("looking to tell the proper column stack (%d) to show the right list associated with the object: %s" %(self.level, self.id ))
+        print("(%s) level: %s" %(self.level, self.id ))
 
     def object_focus(self):
         self.root.object_focus(self.id)
@@ -153,11 +154,12 @@ class ObjWidget(QWidget):
         cons = self.root.add_constraint(obj=self, typ=typ)
 
 class Constraint(QWidget):
-    def __init__(self, parent=None, **kwargs):
+    def __init__(self, parent=None, level=9000, **kwargs):
         super(Constraint, self).__init__(**kwargs)
         self.color_bar = QWidget()
-        self.level = 9000
-        self.color_bar.setFixedWidth(2)
+        self.level = level
+        print("Constraint being created, level %d" %self.level)
+        self.color_bar.setFixedWidth(4)
         self.set_color("orange")
         self.parent = parent
         

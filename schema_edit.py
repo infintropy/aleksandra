@@ -47,10 +47,11 @@ class CreationMenu(QMenu):
 
 
 class ItemList(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, level=9000):
 
         super(ItemList, self).__init__()
-        self.level = 9000
+
+        self.level = level
         self.master_layout = QVBoxLayout()
         self.id = str(uuid.uuid4())
         self.parent = parent
@@ -58,10 +59,9 @@ class ItemList(QWidget):
         self.setLayout( self.master_layout )
         self.lw = QListWidget()
         self.root = self.parent
-        
         self.ls = {}
         self.setFixedWidth(500)
-
+        print('init of imtemlist. level: %d' %self.level)
         
         self.title = EditLabel()
         self.title_font = QFont()
@@ -76,11 +76,13 @@ class ItemList(QWidget):
         self.lw.setDragDropMode(QAbstractItemView.InternalMove)
         self.lw.setResizeMode(QListView.Adjust)
 
-        self.cmd = {"object": ObjWidget}
+
+        objlink = self.get_object_link()
         for c, w in six.iteritems(constraint_widgets()):
-            self.cmd[c] = w
+            
             if parent:
-                o = self.root.add_constraint( obj=self.root.root_obj, typ=c )
+                print('lower init of imtemlist. level: %d' %self.level)
+                o = self.root.add_constraint( obj=objlink, typ=c, level=self.level )
                 self.add_item(constraint=o)
         
     def add_item(self,  constraint=None):
@@ -100,12 +102,24 @@ class ItemList(QWidget):
             self.parent=parent
             self.root = self.parent
 
+    def get_object_link(self):
+        try:
+            objlinkid = self.root.item_lists[self.id]['objlink']
+            objlink = self.root.objects[objlinkid]['widget']
+            return objlink
+        except:
+            return None
+
+
     def add_examples(self):
-
+        try:
+            objlinkid = self.root.item_lists[self.id]['objlink']
+            objlink = self.root.objects[objlinkid]['widget']
+        except:
+            objlink = self.root.root_obj
         for c, w in six.iteritems(constraint_widgets()):
+            o = self.root.add_constraint( obj=objlink, typ=c )
 
-            o = self.root.add_constraint( obj=self.root.root_obj, typ=c )
-            self.add_item(constraint=o)
 
         
 
@@ -238,39 +252,40 @@ class Window(QMainWindow):
 
 
     def show_object_item_list(self, obj):
+
         if type(obj)==str:
             odict = self.objects[obj]
         else:
             odict = self.objects[obj.id]
         o = odict['widget']
+
+        level = odict["level"]
+        print( "MAKING CONSTRAINT LIST::: incoming level: %d" %level)
         if odict["item_list"]:
-            self.metacol[o.level+1].setCurrentWidget( self.item_lists[ self.objects[obj.id]['item_list']]['widget'] )
+            self.metacol[level].setCurrentWidget( self.item_lists[ self.objects[obj.id]['item_list']]['widget'] )
         else:
             print("doesnt have an item list")
-            self.add_item_list(obj=o, index=1)
+            self.add_item_list(obj=o)
 
 
-
-
-
+ 
 
 
     def add_item_list(self, item_list=None, obj=None, index=0):
-        """
+        '''
         This will be where you manage your item scroll lists in in-place
         dimension, as well as their horizontal dimension. 
 
         parent= object
 
-        """
-        print ("inside add item list. currently obj level %d" %obj.level)
-        if not obj:
-            obj = self.root_obj
+        '''
+        
 
-        level = obj.level+index
+        level = obj.level
+        print ("inside add item list. currently obj level %d" %obj.level)
         
         if not item_list:
-            item_list = ItemList(parent=self)
+            item_list = ItemList(parent=self, level=level)
         self.item_lists[item_list.id] = {}
         self.item_lists[item_list.id]['widget'] = item_list
         self.item_lists[item_list.id]['objlink'] = obj.id
@@ -287,6 +302,7 @@ class Window(QMainWindow):
         print(self.metacol)
         return item_list
 
+
     def add_object(self, obj=None, constraint=None, name="Item", index=0):
         """
         Method for adding an item to a provided List constraint or adding it to the root list. 
@@ -295,75 +311,40 @@ class Window(QMainWindow):
         if not constraint:
             cons = self.root_list
         if not obj:
-            obj = ObjWidget(parent=self)
-        obj.level = cons.level
-        if index:
+            obj = ObjWidget(parent=self, level=cons.level+index)
+        else:
             obj.level+=index
         self.objects[obj.id] = {}
         self.objects[obj.id]['widget'] = obj
         self.objects[obj.id]['parent'] = cons.id
         self.objects[obj.id]['item_list'] = None
         self.objects[obj.id]['level'] = obj.level
-
         return obj
+
+
         
-    def add_constraint(self,  constraint=None, obj=None,  typ="List"):
+    def add_constraint(self,  constraint=None, obj=None,  typ="List", level=9000):
         """
         Adding a constraint to an object 
         """
+
         cons = constraint
         if not obj:
             obj = self.root_obj
         if not constraint:
-            cons = self.cmd[typ](parent=self)
+            print("about to force constraint. level: %d" %level)
+            cons = self.cmd[typ](parent=self, level=level)
 
-        cons.level = obj.level
+
         self.constraints[cons.id] = {}
         self.constraints[cons.id]['widget'] = cons
         self.constraints[cons.id]['parent'] = obj.id
         
-
         item_list = self.objects[obj.id]['item_list']
-
         return cons
 
 
-    def add(self, item):
-        pass
-        if type(item)==type(""):
-            print (item)
-            cmd = item
-            item = None
-            constraints = list(self.add_menu.act.keys())
 
-            if cmd in constraints:
-                item = self.cmd[cmd]()
-                print("making a constraint")
-            elif cmd == "ObjWidget":
-                print("making an object")
-            elif cmd== "ItemList":
-                print("making an ItemList")
-
-        if item:
-            par = item.parent.__class__.__name__
-            if par=="Window":
-                self.item_lists[item.id] = {}
-                self.item_lists[item.id]['widget'] = item
-                self.item_lists[item.id]['column'] = 1000
-                print("Item List added!")
-                return item
-            elif par=="ItemList":
-                self.constraints[item.id] = {}
-                self.constraints[item.id]['widget'] = item
-                self.constraints[item.id]['parent'] = item.parent
-                print('constraint added!')
-                return item
-            elif par=="List":
-                self.objects[item.id] = {}
-                self.objects[item.id]['widget'] = item
-                self.objects[item.id]['constr'] = item.parent
-                print('obj added!')
-                return item
 
     def object_focus(self, id): 
         print('focusing on object %s' %id)
@@ -379,7 +360,7 @@ class Window(QMainWindow):
         self.mil_col.insertWidget( len(self.stack_level.keys())-1, self.stack_level[ind] )
    
 
-    def add_list(self, item_list=None, index=1):
+    def add_list(self, item_list=None, index=0):
 
         ind = len(self.stack_level.keys())+index
         if not item_list:
