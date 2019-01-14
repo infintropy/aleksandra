@@ -60,9 +60,11 @@ class ItemList(QWidget):
         self.lw = QListWidget()
         self.root = self.parent
         self.ls = {}
-        self.setFixedWidth(500)
+        #self.setFixedWidth(500)
+        self.setMinimumWidth(350)
+        self.setMaximumWidth(500)
         print('init of imtemlist. level: %d' %self.level)
-        
+        self.setSizePolicy( QSizePolicy.Minimum, QSizePolicy.Expanding )
         self.title = EditLabel()
         self.title_font = QFont()
         self.title_font.setPointSize(24)
@@ -201,8 +203,7 @@ class Window(QMainWindow):
 
 
 
-        self.make = QToolButton()
-        self.make.setText("+")
+
 
         self.setMinimumWidth(700)
         self.setMinimumHeight(500)
@@ -222,7 +223,14 @@ class Window(QMainWindow):
 
 
         self.scroll = QScrollArea(alignment=Qt.Horizontal)
-        self.mil_col_widget = QSplitter(Qt.Horizontal)
+        self.mil_col_widget = QWidget()
+        self.mil_col_layout = QGridLayout()
+        self.mil_col_widget.setLayout(self.mil_col_layout)
+
+
+
+        self.mil_col_widget.setSizePolicy( QSizePolicy.Minimum, QSizePolicy.Expanding )
+
         #shrink_wrap(self.mil_col)
         #self.mil_col.setAlignment(Qt.AlignLeft)
         self.scroll.setWidget(self.mil_col_widget)
@@ -230,12 +238,10 @@ class Window(QMainWindow):
         
 
 
-        self.make.setMenu( self.add_menu )
-        self.make.setPopupMode(QToolButton.InstantPopup)
+
 
  
         self.master_layout.addWidget( self.logo )
-        self.master_layout.addWidget( self.make )
         self.master_layout.addWidget( self.scroll)
         self.main.setLayout( self.master_layout )
 
@@ -249,6 +255,12 @@ class Window(QMainWindow):
         self.add_item_list(obj=self.root_obj)
         #self.add_constraint(obj=self.root_obj)
 
+        #self.end_spacer = QWidget()
+        #self.mil_col_widget.addWidget(self.end_spacer)
+        #self.mil_col_widget.setStretchFactor(1, 1)
+
+        
+        #self.mil_col_widget.addWidget(None)
 
 
     def get_object(self, id=None):                                                      
@@ -312,9 +324,10 @@ class Window(QMainWindow):
             print("MAKING NEW STACKER %d" %level)
             self.metacol[level] = QStackedWidget()
             stack = self.metacol[level]
+        
         self.metacol[level].addWidget( self.item_lists[item_list.id]['widget'] )
         self.metacol[level].setCurrentWidget(  self.item_lists[item_list.id]['widget'] )
-        self.mil_col_widget.addWidget(self.metacol[level])
+        self.mil_col_layout.addWidget(  self.metacol[level], 0, level-9000)
 
         for l in list(self.metacol.keys()):
             if l <= level:
@@ -356,7 +369,9 @@ class Window(QMainWindow):
         if not obj:
             obj = self.root_obj
         if not constraint:
-            
+            if type(typ)!=str:
+                typ = typ[1]
+
             cons = self.cmd[typ](parent=self, level=level)
 
 
@@ -366,8 +381,6 @@ class Window(QMainWindow):
         
         item_list = self.objects[obj.id]['item_list']
         return cons
-
-
 
 
     def object_focus(self, id): 
@@ -390,7 +403,7 @@ class Window(QMainWindow):
         if not item_list:
             item_list = ItemList(self)
         self.stack_level[ind] = item_list
-        self.mil_col.insertWidget( len(self.stack_level.keys())-1, self.stack_level[ind] )
+        self.mil_col.addWidget( self.stack_level[ind] )
    
     def update(self):
         pass

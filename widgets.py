@@ -9,8 +9,8 @@ import os
 import random
 
 
-ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
-#ICON_BASE = "C:/Users/dstrubler/Downloads/EmojiOne_4.0_128x128_png/EmojiOne_4.0_128x128_png"
+#ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
+ICON_BASE = "C:/Users/dstrubler/Downloads/EmojiOne_4.0_128x128_png/EmojiOne_4.0_128x128_png"
 ICONS = os.listdir( ICON_BASE )
 
 #########
