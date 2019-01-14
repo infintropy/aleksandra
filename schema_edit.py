@@ -65,11 +65,13 @@ class ItemList(QWidget):
         
         self.title = EditLabel()
         self.title_font = QFont()
-        self.title_font.setPointSize(15)
+        self.title_font.setPointSize(24)
         self.title.label.label.setFont(self.title_font)
-        self.title.label.label.setMinimumHeight(30)
-        self.title.label.label.setMaximumHeight(30)
-        self.title.setMinimumHeight(30)
+        self.title.label.label.setMinimumHeight(40)
+        self.title.label.label.setMaximumHeight(40)
+        self.title.setMinimumHeight(40)
+
+        self.title.set_text( str(self.level) )
 
         self.master_layout.addWidget( self.title )
         self.master_layout.addWidget( self.lw)
@@ -81,10 +83,22 @@ class ItemList(QWidget):
         for c, w in six.iteritems(constraint_widgets()):
             
             if parent:
-                print('lower init of imtemlist. level: %d' %self.level)
-                o = self.root.add_constraint( obj=objlink, typ=c, level=self.level )
-                self.add_item(constraint=o)
-        
+                if c=="List22":
+                    print('lower init of imtemlist. level: %d' %self.level)
+                    o = self.root.add_constraint( obj=objlink, typ=c, level=self.level )
+                    self.add_item(constraint=o)
+
+    #reimplementations of QWidget base class and beyond.
+    def contextMenuEvent(self, event):
+    
+        menu = CreationMenu()
+
+        action = menu.exec_(self.mapToGlobal(event.pos()))
+        if action:
+            objlink = self.get_object_link()
+            o = self.root.add_constraint( obj=objlink, typ=action.text(), level=self.level )
+            self.add_item(constraint=o)
+
     def add_item(self,  constraint=None):
         cons = constraint
 
@@ -202,18 +216,15 @@ class Window(QMainWindow):
         self.add_menu = CreationMenu()
         for a in list(self.add_menu.act.keys()):
 
-            #self.add_menu.act[a].triggered.connect(partial(self.add_constraint, None, None))
+            self.add_menu.act[a].triggered.connect(partial(self.add_constraint, None, None))
             pass
 
 
 
         self.scroll = QScrollArea(alignment=Qt.Horizontal)
-        self.mil_col_widget = QWidget()
-
-        self.mil_col = QHBoxLayout(self.mil_col_widget)
-        
-        shrink_wrap(self.mil_col)
-        self.mil_col.setAlignment(Qt.AlignLeft)
+        self.mil_col_widget = QSplitter(Qt.Horizontal)
+        #shrink_wrap(self.mil_col)
+        #self.mil_col.setAlignment(Qt.AlignLeft)
         self.scroll.setWidget(self.mil_col_widget)
         self.scroll.setWidgetResizable(True)
         
@@ -259,12 +270,17 @@ class Window(QMainWindow):
             odict = self.objects[obj.id]
         o = odict['widget']
 
-        level = odict["level"]
-        print( "MAKING CONSTRAINT LIST::: incoming level: %d" %level)
+        level = obj.level
         if odict["item_list"]:
+            for l in list(self.metacol.keys()):
+                if l <= level:
+                    self.metacol[l].setVisible(True)
+                else:
+                    self.metacol[l].setVisible(False)
+            #print(self.metacol[level].count())
             self.metacol[level].setCurrentWidget( self.item_lists[ self.objects[obj.id]['item_list']]['widget'] )
         else:
-            print("doesnt have an item list")
+            
             self.add_item_list(obj=o)
 
 
@@ -282,7 +298,7 @@ class Window(QMainWindow):
         
 
         level = obj.level
-        print ("inside add item list. currently obj level %d" %obj.level)
+
         
         if not item_list:
             item_list = ItemList(parent=self, level=level)
@@ -298,8 +314,15 @@ class Window(QMainWindow):
             stack = self.metacol[level]
         self.metacol[level].addWidget( self.item_lists[item_list.id]['widget'] )
         self.metacol[level].setCurrentWidget(  self.item_lists[item_list.id]['widget'] )
-        self.mil_col.addWidget(self.metacol[level])
-        print(self.metacol)
+        self.mil_col_widget.addWidget(self.metacol[level])
+
+        for l in list(self.metacol.keys()):
+            if l <= level:
+                self.metacol[l].setVisible(True)
+            else:
+                self.metacol[l].setVisible(False)
+
+
         return item_list
 
 
@@ -313,7 +336,8 @@ class Window(QMainWindow):
         if not obj:
             obj = ObjWidget(parent=self, level=cons.level+index)
         else:
-            obj.level+=index
+            obj.level = (cons.level + index)
+            
         self.objects[obj.id] = {}
         self.objects[obj.id]['widget'] = obj
         self.objects[obj.id]['parent'] = cons.id
@@ -332,7 +356,7 @@ class Window(QMainWindow):
         if not obj:
             obj = self.root_obj
         if not constraint:
-            print("about to force constraint. level: %d" %level)
+            
             cons = self.cmd[typ](parent=self, level=level)
 
 
