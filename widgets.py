@@ -21,6 +21,19 @@ BUTTON_FONT.setFamily('Helvetica')
 BUTTON_FONT.setPointSize(13)
 
 
+COLORS = {  "red"       : (165, 66, 61),
+            "orange"    : (194, 115, 59),
+            "yellow"    : (226, 184, 67),
+            "olive"     : (192, 201, 81),
+            "green"     : (87, 178, 98),
+            "teal"      : (75, 206, 192),
+            "blue"      : (78, 131, 168),
+            "violet"    : (99, 72, 143),
+            "purple"    : (136, 75, 147),
+            "pink"      : (161, 65, 112),
+            "brown"     : (145, 108, 81)
+}
+
 
 def shrink_wrap(layout, margin=2, spacing=2):
     """
@@ -29,6 +42,10 @@ def shrink_wrap(layout, margin=2, spacing=2):
     layout.setContentsMargins(margin,margin,margin,margin)
     layout.setSpacing(spacing)
 
+
+
+
+
 class Icon(QToolButton):
     def __init__(self):
         super(Icon, self).__init__()
@@ -36,9 +53,13 @@ class Icon(QToolButton):
         self.ic = QIcon("%s/%s" %(ICON_BASE, random.choice(ICONS)))
         #self.ic = QIcon()
         self.setIcon( self.ic )
-
         self.setIconSize(QSize(30,30))
         self.setAutoRaise(True)
+
+
+
+
+
 
 class NameBadge(QWidget):
     def __init__(self, label=None):
@@ -71,7 +92,6 @@ class NameBadge(QWidget):
 
 
         self.master_layout.addStretch()
-
         self.master_layout.addWidget( self.req)
         self.master_layout.addWidget( self.fav )
 
@@ -83,6 +103,8 @@ class NameBadge(QWidget):
 
         self.favorite = QToolButton()
         self.favorite.setText("*")
+
+
 
 
     def add_favorite(self):
@@ -104,16 +126,17 @@ class EditLabel(QStackedWidget):
 
         self.label.label.setFont(BUTTON_FONT)
 
-
         self.addWidget( self.label)
         self.addWidget( self.edit )
 
         self.label.label.setText("button")
 
-        self.label.label.clicked.connect(self.edit_text)
+        self.label.label.mouseDoubleClickEvent = self.edit_text
+
+        #self.label.label.clicked.connect(self.edit_text)
         self.edit.editingFinished.connect( self.commit_text )
 
-    def edit_text(self):
+    def edit_text(self, event):
         self.setCurrentWidget( self.edit )
 
     def commit_text(self):
@@ -134,18 +157,20 @@ class ObjWidget(QWidget):
         print("Object being created. Level %d" %self.level)
         self.id = str(uuid.uuid4())
         self.master_layout = QHBoxLayout()
-        self.label = QLabel("Item")
+        self.label = EditLabel()
+        self.label.set_text("Item")
         self.master_layout.addWidget( self.label )
         shrink_wrap(self.master_layout, margin=5, spacing=3)
         self.setLayout( self.master_layout )
 
-        self.mouseReleaseEvent = self._emit_id
+        self.mousePressEvent = self._emit_id
     
 
 
     def _emit_id(self, event):
         self.root.show_object_item_list(self)
         print("(%s) level: %s" %(self.level, self.id ))
+        self.mouseReleaseEvent(event)
 
     def object_focus(self):
         self.root.object_focus(self.id)
@@ -159,7 +184,7 @@ class Constraint(QWidget):
         self.color_bar = QWidget()
         self.level = level
         print("Constraint being created, level %d" %self.level)
-        self.color_bar.setFixedWidth(4)
+        self.color_bar.setFixedWidth(6)
         self.set_color("orange")
         self.parent = parent
         
@@ -189,13 +214,15 @@ class Constraint(QWidget):
         self.setLayout(self.meta_layout)
         shrink_wrap(self.master_layout, margin=2, spacing=2)
         self.title = EditLabel()
-        self._name = None
+        self._name = None                                   
         self.master_layout.addWidget(self.title, stretch=0)
         
         #self.mouseReleaseEvent = self._emit_id
 
     def set_color(self, color):
-        self.color_bar.setStyleSheet("background-color:%s;" %color)
+        if color in list(COLORS.keys()):
+            c = COLORS[color]
+            self.color_bar.setStyleSheet("background-color:rgb(%d, %d, %d);border-radius:3px" %(c[0], c[1], c[2]))
 
     def set_name(self, nm):
         self._name = nm

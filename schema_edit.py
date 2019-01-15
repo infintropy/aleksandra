@@ -13,6 +13,8 @@ import six
 from constraints import *
 from widgets import *
 
+import qdarkstyle
+
 
 
 
@@ -80,6 +82,7 @@ class ItemList(QWidget):
         self.lw.setDragDropMode(QAbstractItemView.InternalMove)
         self.lw.setResizeMode(QListView.Adjust)
 
+        self.lw.itemDoubleClicked.connect( self.dc )
 
         objlink = self.get_object_link()
         for c, w in six.iteritems(constraint_widgets()):
@@ -92,9 +95,7 @@ class ItemList(QWidget):
 
     #reimplementations of QWidget base class and beyond.
     def contextMenuEvent(self, event):
-    
         menu = CreationMenu()
-
         action = menu.exec_(self.mapToGlobal(event.pos()))
         if action:
             objlink = self.get_object_link()
@@ -107,11 +108,14 @@ class ItemList(QWidget):
         self.ls[cons.id] = {}
         self.ls[cons.id]['widget'] = cons
         self.ls[cons.id]['item_widget'] = QListWidgetItem()
-
+        
         self.ls[cons.id]['item_widget'].setSizeHint(self.ls[cons.id]["widget"].sizeHint())
 
         self.lw.addItem(self.ls[cons.id]['item_widget'])
         self.lw.setItemWidget( self.ls[cons.id]['item_widget'], self.ls[cons.id]['widget'])
+
+    def dc(self):
+        print( "item double clicked!" )
 
     def set_parent(self, parent=None):
         if parent:
@@ -225,8 +229,15 @@ class Window(QMainWindow):
         self.scroll = QScrollArea(alignment=Qt.Horizontal)
         self.mil_col_widget = QWidget()
         self.mil_col_layout = QGridLayout()
-        self.mil_col_widget.setLayout(self.mil_col_layout)
 
+        self.miller_layout = QHBoxLayout()
+        shrink_wrap(self.miller_layout)
+
+        self.miller_spacer = QSpacerItem(1  , 1, QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.miller_layout.addLayout(self.mil_col_layout)
+        self.miller_layout.addItem( self.miller_spacer )
+        
+        self.mil_col_widget.setLayout(self.miller_layout)
 
 
         self.mil_col_widget.setSizePolicy( QSizePolicy.Minimum, QSizePolicy.Expanding )
@@ -415,7 +426,12 @@ if __name__ == '__main__':
     window = Window()
 
     app.setStyle("Fusion")
+
+
+    # setup stylesheet
+    #app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     theme.dark(app)
+
 
     window.show()
 

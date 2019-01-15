@@ -35,11 +35,12 @@ class List(Constraint):
 
 
 
+
 class Choice(Constraint):
     def __init__(self, items=None, **kwargs):
         super(Choice, self).__init__(**kwargs)
         self.widget_1 = QComboBox()
-
+        self.set_color("blue")
         if items:
             self.widget_1.addItems(items)
         else:
@@ -50,7 +51,7 @@ class Checkbox(Constraint):
     def __init__(self, items=None, **kwargs):
         super(Checkbox, self).__init__(**kwargs)
         self.widget_1 = QCheckBox()
-        self.set_color("purple")
+        self.set_color("olive")
         self.master_layout.addWidget(self.widget_1)
 
 
@@ -68,7 +69,7 @@ class TextBlock(Constraint):
         super(TextBlock, self).__init__(**kwargs)
         
         self.widget_1 = QPlainTextEdit()
-        self.set_color("cyan")
+        self.set_color("teal")
         self.master_layout.addWidget(self.widget_1, stretch=0)
         self.master_layout.addStretch()
         self.widget_1.setMaximumHeight(100)
@@ -86,7 +87,7 @@ class Price(Constraint):
     def __init__(self, **kwargs):
         super(Price, self).__init__(**kwargs)
         self.layout = QHBoxLayout()
-        self.set_color("blue")
+        self.set_color("orange")
         shrink_wrap(self.layout, margin=0, spacing=0)
         self.id = str(uuid.uuid4())
         self.symbol = QToolButton()
@@ -96,5 +97,45 @@ class Price(Constraint):
         self.layout.addWidget(self.symbol)
         self.layout.addWidget(self.widget_1)
         self.master_layout.addLayout(self.layout)
+
+class File(Constraint):
+    def __init__(self, **kwargs):
+        super(File, self).__init__(**kwargs)
+        self.menu
+        self.layout = QHBoxLayout()
+        self.file_path = QLineEdit()
+        self.file_path.setPlaceholderText("/path/to/file.txt")
+        self.master_layout.addWidget(self.file_path)
+
+
+
+class ScreenLocation(Constraint):
+    def __init__(self, **kwargs):
+        super(ScreenLocation, self).__init__(**kwargs)
+        """
+        USL     UC      USR
+        CSL     C       CSR
+        LSL     LC      LCR
+        """
+
+        self.depth_options = [i for i in ["FG", "MG", "BG"]]
+
+        self.buttons = {"USL" : (1,1),
+                        "UC"  : (1,2),
+                        "USR" : (1,3),
+                        "CSL" : (2,1),
+                        "C"   : (2,2),
+                        "CSR" : (2,3),
+                        "LSL" : (3,1),
+                        "LC"  : (3,2),
+                        "LCR" : (3,3)
+                        }
+        self.layout = QGridLayout()
+        for k,v in self.buttons.items():
+            but = QPushButton(k)
+            but.setCheckable(True)
+            self.layout.addWidget( but, v[0], v[1] )
+
+        self.master_layout.addLayout( self.layout )
 
 
