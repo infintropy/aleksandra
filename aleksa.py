@@ -109,9 +109,9 @@ class ObjectList(Constraint):
             else:
                 self._objs[o.id] = o
                 com.append(0)
-        print "Added %d items to list." %len(com)
+        print("Added %d items to list." %len(com))
         if len(rej)>0:
-            print "Rejected %d restricted items of types: (%s)" %(len(rej), ", ".join([i.type for i in rej]))
+            print("Rejected %d restricted items of types: (%s)" %(len(rej), ", ".join([i.type for i in rej])))
 
 class ScreenLocation(Constraint):
     def __init__(self, z=None, xy=None, **kwargs):
@@ -246,9 +246,9 @@ class Object(object):
 
     def tree(self, indent=0):
         ind = indent+1
-        print "%s [%s] (%s)" % ("\t" * (ind - 1), self.__class__.__name__, self._type)
+        print("%s [%s] (%s)" % ("\t" * (ind - 1), self.__class__.__name__, self._type))
         for i, v in self._constraints.iteritems():
-            print "%s[%s] %s" %("\t"*ind, v.__class__.__name__, v.id)
+            print("%s[%s] %s" %("\t"*ind, v.__class__.__name__, v.id))
             if isinstance( v, ObjectList):
                 listitems = [p for o,p in getattr(v, "_objs").iteritems()]
                 for l in listitems:

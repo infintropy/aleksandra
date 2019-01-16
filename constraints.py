@@ -3,7 +3,7 @@ from widgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import * 
 import inspect
-
+import aleksa
 
 
 
@@ -101,7 +101,7 @@ class Price(Constraint):
 class File(Constraint):
     def __init__(self, **kwargs):
         super(File, self).__init__(**kwargs)
-        self.menu
+
         self.layout = QHBoxLayout()
         self.file_path = QLineEdit()
         self.file_path.setPlaceholderText("/path/to/file.txt")
@@ -117,8 +117,8 @@ class ScreenLocation(Constraint):
         CSL     C       CSR
         LSL     LC      LCR
         """
-
-        self.depth_options = [i for i in ["FG", "MG", "BG"]]
+        self.ak = aleksa.ScreenLocation()
+        self.depth_options = self.ak._z_possibilities
 
         self.buttons = {"USL" : (1,1),
                         "UC"  : (1,2),
@@ -130,12 +130,23 @@ class ScreenLocation(Constraint):
                         "LC"  : (3,2),
                         "LCR" : (3,3)
                         }
-        self.layout = QGridLayout()
+        self.layout = QHBoxLayout()
+        shrink_wrap(self.layout)
+        self.button_layout = QGridLayout()
         for k,v in self.buttons.items():
-            but = QPushButton(k)
+            but = QToolButton()
+            but.setFixedWidth(30)
+            but.setFixedHeight(30)
+            but.setText(k)
             but.setCheckable(True)
-            self.layout.addWidget( but, v[0], v[1] )
+            self.button_layout.addWidget( but, v[0], v[1] )
 
-        self.master_layout.addLayout( self.layout )
-
+        self._z_combo = QComboBox()
+        for c,d in enumerate(["BG", "MG", "FG"]):
+            self._z_combo.addItems([i for i in self.depth_options if d in i])
+        self._z_combo.insertSeparator(5)
+        self._z_combo.insertSeparator(11)
+        self.layout.addLayout( self.button_layout )
+        self.layout.addWidget( self._z_combo)
+        self.master_layout.addLayout(self.layout)
 

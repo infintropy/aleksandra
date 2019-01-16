@@ -93,6 +93,8 @@ class ItemList(QWidget):
                     o = self.root.add_constraint( obj=objlink, typ=c, level=self.level )
                     self.add_item(constraint=o)
 
+        self.title.edited.connect(self._update_upstream_title)
+
     #reimplementations of QWidget base class and beyond.
     def contextMenuEvent(self, event):
         menu = CreationMenu()
@@ -101,6 +103,13 @@ class ItemList(QWidget):
             objlink = self.get_object_link()
             o = self.root.add_constraint( obj=objlink, typ=action.text(), level=self.level )
             self.add_item(constraint=o)
+
+
+    def _update_upstream_title(self, title):
+        objlink = self.get_object_link()
+        objlink.label.set_text( self.title.text() )
+
+
 
     def add_item(self,  constraint=None):
         cons = constraint
@@ -303,7 +312,6 @@ class Window(QMainWindow):
             #print(self.metacol[level].count())
             self.metacol[level].setCurrentWidget( self.item_lists[ self.objects[obj.id]['item_list']]['widget'] )
         else:
-            
             self.add_item_list(obj=o)
 
 

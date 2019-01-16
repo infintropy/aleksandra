@@ -7,6 +7,7 @@ import inspect
 import sys
 import os
 import random
+from utils import COLORS
 
 
 #ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
@@ -21,18 +22,7 @@ BUTTON_FONT.setFamily('Helvetica')
 BUTTON_FONT.setPointSize(13)
 
 
-COLORS = {  "red"       : (165, 66, 61),
-            "orange"    : (194, 115, 59),
-            "yellow"    : (226, 184, 67),
-            "olive"     : (192, 201, 81),
-            "green"     : (87, 178, 98),
-            "teal"      : (75, 206, 192),
-            "blue"      : (78, 131, 168),
-            "violet"    : (99, 72, 143),
-            "purple"    : (136, 75, 147),
-            "pink"      : (161, 65, 112),
-            "brown"     : (145, 108, 81)
-}
+
 
 
 def shrink_wrap(layout, margin=2, spacing=2):
@@ -58,7 +48,8 @@ class Icon(QToolButton):
 
 
 
-
+class ColorMenu(QWidget):
+    pass
 
 
 class NameBadge(QWidget):
@@ -116,12 +107,15 @@ class NameBadge(QWidget):
 
 
 class EditLabel(QStackedWidget):
+
+    edited = pyqtSignal(str)
+
     def __init__(self, label=None):
         super(EditLabel, self).__init__()
         self.label = NameBadge()
   
         self.edit = QLineEdit() 
-
+        
         self.setMaximumHeight(25)
 
         self.label.label.setFont(BUTTON_FONT)
@@ -136,12 +130,16 @@ class EditLabel(QStackedWidget):
         #self.label.label.clicked.connect(self.edit_text)
         self.edit.editingFinished.connect( self.commit_text )
 
+    def text(self):
+        return self.label.label.text()
+
     def edit_text(self, event):
         self.setCurrentWidget( self.edit )
 
     def commit_text(self):
         self.setCurrentWidget( self.label )
         self.set_text( self.edit.text() )
+        self.edited.emit("derp!")
 
     def set_text(self, txt):
         self.label.label.setText(txt)
@@ -164,8 +162,18 @@ class ObjWidget(QWidget):
         self.setLayout( self.master_layout )
 
         self.mousePressEvent = self._emit_id
-    
 
+
+        self.label.edited.connect( self.label_edited )
+
+    
+    def label_edited(self, t):
+        try:
+            ilid = self.root.objects[self.id]["item_list"]
+            il = self.root.item_lists[ilid]['widget']
+            il.title.set_text( self.label.text() )
+        except:
+            self.root.add_item_list(obj=self)
 
     def _emit_id(self, event):
         self.root.show_object_item_list(self)
@@ -214,6 +222,7 @@ class Constraint(QWidget):
         self.setLayout(self.meta_layout)
         shrink_wrap(self.master_layout, margin=2, spacing=2)
         self.title = EditLabel()
+        self.title.set_text(self.__class__.__name__)
         self._name = None                                   
         self.master_layout.addWidget(self.title, stretch=0)
         
