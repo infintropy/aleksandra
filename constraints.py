@@ -15,11 +15,17 @@ class List(Constraint):
         self.ls = {}
         self.widget_1 = QListWidget()
         if kwargs.get("parent"):
-            for i in ["Task%d" %d for d in range(4)]:
-                self.add_item()
+            for i in ["Task%d" %d for d in range(5)]:
+                #self.add_item()
+                pass
 
         self.master_layout.addWidget(self.widget_1)
         self.widget_1.setDragDropMode(QAbstractItemView.InternalMove)
+        self.add_obj = QToolButton()
+        self.add_obj.setText("+")
+        self.title.label.master_layout.addWidget(self.add_obj)
+
+        self.add_obj.clicked.connect( self.add_item )
 
     def add_item(self, name="Item"):
 
@@ -107,6 +113,11 @@ class File(Constraint):
         self.file_path.setPlaceholderText("/path/to/file.txt")
         self.master_layout.addWidget(self.file_path)
 
+class Object(Constraint):
+    def __init__(self, **kwargs):
+        super(Object, self).__init__(**kwargs)
+
+        pass
 
 
 class ScreenLocation(Constraint):

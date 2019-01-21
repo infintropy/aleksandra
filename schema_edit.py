@@ -73,7 +73,7 @@ class ItemList(QWidget):
         self.title.label.label.setFont(self.title_font)
         self.title.label.label.setMinimumHeight(40)
         self.title.label.label.setMaximumHeight(40)
-        self.title.setMinimumHeight(40)
+        self.title.setMinimumHeight(30)
 
         self.title.set_text( str(self.level) )
 

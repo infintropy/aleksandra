@@ -10,8 +10,8 @@ import random
 from utils import COLORS
 
 
-#ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
-ICON_BASE = "C:/Users/dstrubler/Downloads/EmojiOne_4.0_128x128_png/EmojiOne_4.0_128x128_png"
+ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
+#ICON_BASE = "C:/Users/dstrubler/Downloads/EmojiOne_4.0_128x128_png/EmojiOne_4.0_128x128_png"
 ICONS = os.listdir( ICON_BASE )
 
 #########
@@ -34,6 +34,32 @@ def shrink_wrap(layout, margin=2, spacing=2):
 
 
 
+class ColorMenu(QMenu):
+    def __init__(self):
+        super(ColorMenu, self).__init__()
+
+        self.color_bar = QToolBar()
+
+        for color, vals in COLORS.items():
+            act = QToolButton()
+
+            pix = QPixmap(9,9)
+            pix.fill( QColor(vals[0], vals[1], vals[2]) )
+            icon = QIcon(pix)
+            act.setIcon( icon )
+
+
+            self.color_bar.addWidget(act )
+        
+        self.color_bar.setIconSize(QSize(9,9))
+
+
+        self.wAction = QWidgetAction(self)
+        self.wAction.setDefaultWidget(self.color_bar)
+
+        self.addAction( self.wAction )
+
+
 
 
 class Icon(QToolButton):
@@ -48,16 +74,17 @@ class Icon(QToolButton):
 
 
 
-class ColorMenu(QWidget):
-    pass
 
 
 class NameBadge(QWidget):
     def __init__(self, label=None):
         super(NameBadge, self).__init__()
         self.label = QToolButton()
+        self.label.setStyleSheet("background-color:rgba(50,50,50,120);border-radius:4px;QToolButton::menu-indicator { image: none; }")
         self.label.setFont( BUTTON_FONT )
         self.label.setAutoRaise(True)
+        self.label.setPopupMode(QToolButton.InstantPopup)
+
 
         self.fav = QToolButton(  )
         self.fav.setText( "<3" )
@@ -74,6 +101,8 @@ class NameBadge(QWidget):
 
         self.menu.addAction(self.act_fav)
         self.label.setMenu( self.menu )
+        self.cmenu = ColorMenu()
+        self.label.setMenu( self.cmenu )
 
 
 
@@ -83,8 +112,8 @@ class NameBadge(QWidget):
 
 
         self.master_layout.addStretch()
-        self.master_layout.addWidget( self.req)
-        self.master_layout.addWidget( self.fav )
+        #self.master_layout.addWidget( self.req)
+        #self.master_layout.addWidget( self.fav )
 
         self.setLayout(self.master_layout)
         self.label.setMinimumHeight(20)
@@ -157,9 +186,15 @@ class ObjWidget(QWidget):
         self.master_layout = QHBoxLayout()
         self.label = EditLabel()
         self.label.set_text("Item")
-        self.master_layout.addWidget( self.label )
+        
         shrink_wrap(self.master_layout, margin=5, spacing=3)
+        self.master_layout.setContentsMargins(10,1,5,1)
         self.setLayout( self.master_layout )
+
+        self.check = QCheckBox()
+
+        self.master_layout.addWidget( self.check )
+        self.master_layout.addWidget( self.label )
 
         self.mousePressEvent = self._emit_id
 
