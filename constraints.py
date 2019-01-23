@@ -13,11 +13,11 @@ class List(Constraint):
         super(List, self).__init__(**kwargs)
         self.set_color("green")
         self.ls = {}
+        self.list_height = 0
         self.widget_1 = QListWidget()
-        if kwargs.get("parent"):
-            for i in ["Task%d" %d for d in range(5)]:
-                #self.add_item()
-                pass
+        self.widget_1.setMaximumHeight(self.list_height)
+        self.widget_1.setSizePolicy( QSizePolicy.Expanding, QSizePolicy.Minimum )
+
 
         self.master_layout.addWidget(self.widget_1)
         self.widget_1.setDragDropMode(QAbstractItemView.InternalMove)
@@ -26,6 +26,7 @@ class List(Constraint):
         self.title.label.master_layout.addWidget(self.add_obj)
 
         self.add_obj.clicked.connect( self.add_item )
+        self.setSizePolicy( QSizePolicy.Expanding, QSizePolicy.Minimum )
 
     def add_item(self, name="Item"):
 
@@ -39,6 +40,14 @@ class List(Constraint):
         self.widget_1.addItem(self.ls[o.id]['item_widget'])
         self.widget_1.setItemWidget( self.ls[o.id]['item_widget'], self.ls[o.id]['widget']) 
 
+        oid = self.root.constraints[self.id]['parent']
+        iliw = self.root.constraints[self.id]['item_widget']
+        iliw.setSizeHint(QSize(0,self.height()+35))
+        self.list_height+=35
+        
+        self.widget_1.setMaximumHeight(self.list_height+2)
+        ilid = self.root.objects[oid]['item_list']
+        self.root.item_lists[ilid]['widget'].update()
 
 
 
@@ -53,18 +62,47 @@ class Choice(Constraint):
             self.widget_1.addItems(["Choice%d" %d for d in range(5)])
         self.master_layout.addWidget(self.widget_1)
 
-class Checkbox(Constraint):
-    def __init__(self, items=None, **kwargs):
-        super(Checkbox, self).__init__(**kwargs)
-        self.widget_1 = QCheckBox()
-        self.set_color("olive")
-        self.master_layout.addWidget(self.widget_1)
 
+class ImageGrid(Constraint):
+    def __init__(self, items=None, **kwargs):
+        super(ImageGrid, self).__init__(**kwargs)
+        self.set_color("red", "orange")
+        self.add_img = QToolButton()
+        self.add_img.setText("+")
+        self.title.label.master_layout.addWidget(self.add_img)
+        self.add_img.clicked.connect( self.add_image )
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+    def add_image(self):
+        a = QPushButton('derp')
+        a.setMinimumHeight(18)
+        self.master_layout.addWidget(a)
+        oid = self.root.constraints[self.id]['parent']
+        iliw = self.root.constraints[self.id]['item_widget']
+        iliw.setSizeHint(QSize(0,self.height()+30))
+        ilid = self.root.objects[oid]['item_list']
+        self.root.item_lists[ilid]['widget'].update()
+
+
+
+class GIF(Constraint):
+    def __init__(self, items=None, **kwargs):
+        super(GIF, self).__init__(**kwargs)
+        """
+        self.movie_screen = QLabel()
+        self.movie_screen.setMaximumWidth(300)
+        self.movie = QMovie("/Users/donaldstrubler/Downloads/fieri.gif", QByteArray()) 
+        self.movie.setCacheMode(QMovie.CacheAll) 
+        self.movie.setSpeed(100) 
+        self.movie_screen.setMovie(self.movie) 
+        self.movie.start()
+        self.master_layout.addWidget(self.movie_screen)
+        """
 
 class TextLine(Constraint):
     def __init__(self, **kwargs):
         super(TextLine, self).__init__(**kwargs)
-        self.set_color("red")
+        self.set_color("teal", "purple")
         self.widget_1 = QLineEdit()
         self.master_layout.addWidget(self.widget_1, stretch=0)
         self.master_layout.addStretch()
@@ -114,10 +152,23 @@ class File(Constraint):
         self.master_layout.addWidget(self.file_path)
 
 class Object(Constraint):
-    def __init__(self, **kwargs):
+    def __init__(self, name=None, **kwargs):
         super(Object, self).__init__(**kwargs)
 
-        pass
+        self.mousePressEvent = self._emit_id
+
+
+        
+        self.obj = self.root.add_object(constraint=self, name=name, index=1)
+
+        self.master_layout.addWidget( self.obj )
+        self.title.setVisible(False)
+
+    def _emit_id(self, e):
+        self.root.show_object_item_list(self.obj)
+        #print("(%s) level: %s" %(self.level, self.id ))
+        self.mouseReleaseEvent(e)
+        
 
 
 class ScreenLocation(Constraint):

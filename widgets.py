@@ -83,7 +83,7 @@ class NameBadge(QWidget):
         self.label.setStyleSheet("background-color:rgba(50,50,50,120);border-radius:4px;QToolButton::menu-indicator { image: none; }")
         self.label.setFont( BUTTON_FONT )
         self.label.setAutoRaise(True)
-        self.label.setPopupMode(QToolButton.InstantPopup)
+        #self.label.setPopupMode(QToolButton.InstantPopup)
 
 
         self.fav = QToolButton(  )
@@ -192,13 +192,18 @@ class ObjWidget(QWidget):
         self.setLayout( self.master_layout )
 
         self.check = QCheckBox()
+        self.expand = QToolButton()
+        self.expand.setText(">>")
+        self.expand.setAutoRaise(True)
 
         self.master_layout.addWidget( self.check )
         self.master_layout.addWidget( self.label )
+        self.master_layout.addStretch()
+        self.master_layout.addWidget(self.expand)
 
         self.mousePressEvent = self._emit_id
 
-
+        self.expand.clicked.connect( self.make_list )
         self.label.edited.connect( self.label_edited )
 
     
@@ -208,12 +213,15 @@ class ObjWidget(QWidget):
             il = self.root.item_lists[ilid]['widget']
             il.title.set_text( self.label.text() )
         except:
-            self.root.add_item_list(obj=self)
+            pass
 
     def _emit_id(self, event):
         self.root.show_object_item_list(self)
         print("(%s) level: %s" %(self.level, self.id ))
         self.mouseReleaseEvent(event)
+
+    def make_list(self):
+        self.root.show_object_item_list(self, make=True)
 
     def object_focus(self):
         self.root.object_focus(self.id)
@@ -260,13 +268,14 @@ class Constraint(QWidget):
         self.title.set_text(self.__class__.__name__)
         self._name = None                                   
         self.master_layout.addWidget(self.title, stretch=0)
-        
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         #self.mouseReleaseEvent = self._emit_id
 
-    def set_color(self, color):
-        if color in list(COLORS.keys()):
-            c = COLORS[color]
-            self.color_bar.setStyleSheet("background-color:rgb(%d, %d, %d);border-radius:3px" %(c[0], c[1], c[2]))
+    def set_color(self, *colors):
+        r = sum([COLORS[c][0] for c in colors])/len(colors)
+        g = sum([COLORS[c][1] for c in colors])/len(colors)
+        b = sum([COLORS[c][2] for c in colors])/len(colors)
+        self.color_bar.setStyleSheet("background-color:rgb(%d, %d, %d);border-radius:3px" %(r,g,b))
 
     def set_name(self, nm):
         self._name = nm

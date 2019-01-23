@@ -57,7 +57,7 @@ class ItemList(QWidget):
         self.master_layout = QVBoxLayout()
         self.id = str(uuid.uuid4())
         self.parent = parent
-        shrink_wrap(self.master_layout)
+        shrink_wrap(self.master_layout, spacing=5)
         self.setLayout( self.master_layout )
         self.lw = QListWidget()
         self.root = self.parent
@@ -69,11 +69,10 @@ class ItemList(QWidget):
         self.setSizePolicy( QSizePolicy.Minimum, QSizePolicy.Expanding )
         self.title = EditLabel()
         self.title_font = QFont()
-        self.title_font.setPointSize(24)
+        self.title_font.setPointSize(18)
         self.title.label.label.setFont(self.title_font)
-        self.title.label.label.setMinimumHeight(40)
-        self.title.label.label.setMaximumHeight(40)
-        self.title.setMinimumHeight(30)
+        self.title.label.label.setMinimumHeight(25)
+        self.title.setMinimumHeight(20)
 
         self.title.set_text( str(self.level) )
 
@@ -84,14 +83,7 @@ class ItemList(QWidget):
 
         self.lw.itemDoubleClicked.connect( self.dc )
 
-        objlink = self.get_object_link()
-        for c, w in six.iteritems(constraint_widgets()):
-            
-            if parent:
-                if c=="List22":
-                    print('lower init of imtemlist. level: %d' %self.level)
-                    o = self.root.add_constraint( obj=objlink, typ=c, level=self.level )
-                    self.add_item(constraint=o)
+
 
         self.title.edited.connect(self._update_upstream_title)
 
@@ -117,6 +109,7 @@ class ItemList(QWidget):
         self.ls[cons.id] = {}
         self.ls[cons.id]['widget'] = cons
         self.ls[cons.id]['item_widget'] = QListWidgetItem()
+        self.root.constraints[cons.id]['item_widget'] = self.ls[cons.id]['item_widget']
         
         self.ls[cons.id]['item_widget'].setSizeHint(self.ls[cons.id]["widget"].sizeHint())
 
@@ -294,7 +287,7 @@ class Window(QMainWindow):
 
 
 
-    def show_object_item_list(self, obj):
+    def show_object_item_list(self, obj, make=False):
 
         if type(obj)==str:
             odict = self.objects[obj]
@@ -312,7 +305,8 @@ class Window(QMainWindow):
             #print(self.metacol[level].count())
             self.metacol[level].setCurrentWidget( self.item_lists[ self.objects[obj.id]['item_list']]['widget'] )
         else:
-            self.add_item_list(obj=o)
+            if make==True:
+                self.add_item_list(obj=o)
 
 
  
@@ -392,7 +386,6 @@ class Window(QMainWindow):
                 typ = typ[1]
 
             cons = self.cmd[typ](parent=self, level=level)
-
 
         self.constraints[cons.id] = {}
         self.constraints[cons.id]['widget'] = cons
