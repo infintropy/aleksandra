@@ -88,6 +88,16 @@ class ItemList(QWidget):
         self.title.edited.connect(self._update_upstream_title)
 
     #reimplementations of QWidget base class and beyond.
+    @property
+    def object_link(self):
+        try:
+            objlinkid = self.root.item_lists[self.id]['objlink']
+            objlink = self.root.objects[objlinkid]['widget']
+            return objlink
+        except:
+            return None
+
+
     def contextMenuEvent(self, event):
         menu = CreationMenu()
         action = menu.exec_(self.mapToGlobal(event.pos()))
@@ -95,6 +105,12 @@ class ItemList(QWidget):
             objlink = self.get_object_link()
             o = self.root.add_constraint( obj=objlink, typ=action.text(), level=self.level )
             self.add_item(constraint=o)
+
+    def update_obj_count(self):
+        itc = self.lw.count()
+        if itc>0:
+            self.object_link.expand.setIcon(QIcon())
+            self.object_link.expand.setText(str(itc))
 
 
     def _update_upstream_title(self, title):
@@ -115,6 +131,8 @@ class ItemList(QWidget):
 
         self.lw.addItem(self.ls[cons.id]['item_widget'])
         self.lw.setItemWidget( self.ls[cons.id]['item_widget'], self.ls[cons.id]['widget'])
+
+        self.update_obj_count()
 
     def dc(self):
         print( "item double clicked!" )

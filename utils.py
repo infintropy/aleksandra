@@ -3,6 +3,8 @@ import sys
 
 import logging
 
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 COLORS = {  "red"       : (165, 66, 61),
             "orange"    : (194, 115, 59),
             "yellow"    : (226, 184, 67),
@@ -14,3 +16,9 @@ COLORS = {  "red"       : (165, 66, 61),
             "purple"    : (136, 75, 147),
             "pink"      : (161, 65, 112)
 }
+
+def icon(name):
+    ics = os.listdir( os.path.join( ROOT_DIR, "icons" )   )
+    request = "%s.png" %name
+    if request in ics:
+        return os.path.join( ROOT_DIR, "icons", request )

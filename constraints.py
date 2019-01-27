@@ -15,6 +15,7 @@ class List(Constraint):
         self.ls = {}
         self.list_height = 0
         self.widget_1 = QListWidget()
+        self.widget_1.setStyleSheet("border-radius:10px;")
         self.widget_1.setMaximumHeight(self.list_height)
         self.widget_1.setSizePolicy( QSizePolicy.Expanding, QSizePolicy.Minimum )
 
@@ -168,6 +169,18 @@ class Object(Constraint):
         self.root.show_object_item_list(self.obj)
         #print("(%s) level: %s" %(self.level, self.id ))
         self.mouseReleaseEvent(e)
+
+
+class MultipleChoice(Constraint):
+    def __init__(self, name=None, **kwargs):
+        super(MultipleChoice, self).__init__(**kwargs)
+
+        self.widget_1 = QLabel('Whats the answer to this question?')
+        self.answers = ButtonChoice()
+        self.answers.add_buttons(['dog', 'cat', 'parrot'], adjust="right")
+
+        self.master_layout.addWidget( self.widget_1 )
+        self.master_layout.addWidget( self.answers,  )
         
 
 

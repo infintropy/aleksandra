@@ -7,7 +7,7 @@ import inspect
 import sys
 import os
 import random
-from utils import COLORS
+from utils import COLORS, icon
 
 
 ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
@@ -23,6 +23,55 @@ BUTTON_FONT.setPointSize(13)
 
 
 
+class Field(QWidget):
+    def __init__(self):
+        super(Field, self).__init__()
+        
+        self._value = None
+        self._widget = None
+        self._master_layout = QVBoxLayout()
+        self.setLayout(self._master_layout)
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, val):
+        if val:
+            self._value = val
+    
+    def serialize(self):
+        return None
+        #return serialized dict of field
+        #{'field_name'}
+
+class ButtonChoice(Field):
+    def __init__(self):
+        super(Field, self).__init__()
+        self._master_layout = QHBoxLayout()
+        self._button_group = QButtonGroup()
+
+        self._checked_css = "QAbstractButton::checked{background-color:rgba(30,50,100);}"
+        self.setStyleSheet(self._checked_css)
+        self.setLayout(self._master_layout)
+        self._button_group.buttonClicked.connect(self.radio_select)
+
+    def add_buttons(self, button_list, span=False, adjust="left"):
+        self._buttons = {}
+        if adjust=="right":
+            self._master_layout.addStretch()
+        for b in button_list:
+            self._buttons[b] = QToolButton()
+            self._buttons[b].setText( b )
+            self._buttons[b].setCheckable(True)
+            self._master_layout.addWidget(self._buttons[b])
+            self._button_group.addButton(self._buttons[b])
+        if adjust=="left":
+            self._master_layout.addStretch()
+
+    def radio_select(self, button ):
+        print('clicking button %s' %button.text())
 
 
 def shrink_wrap(layout, margin=2, spacing=2):
@@ -193,8 +242,10 @@ class ObjWidget(QWidget):
 
         self.check = QCheckBox()
         self.expand = QToolButton()
-        self.expand.setText(">>")
+        self.expand.setIcon(QIcon(QPixmap( icon("next") )))
         self.expand.setAutoRaise(True)
+
+
 
         self.master_layout.addWidget( self.check )
         self.master_layout.addWidget( self.label )
@@ -205,6 +256,8 @@ class ObjWidget(QWidget):
 
         self.expand.clicked.connect( self.make_list )
         self.label.edited.connect( self.label_edited )
+
+
 
     
     def label_edited(self, t):
@@ -234,17 +287,18 @@ class Constraint(QWidget):
         super(Constraint, self).__init__(**kwargs)
         self.color_bar = QWidget()
         self.level = level
-        print("Constraint being created, level %d" %self.level)
+        #print("Constraint being created, level %d" %self.level)
         self.color_bar.setFixedWidth(6)
         self.set_color("orange")
         self.parent = parent
-        
+        self.ctrl_dots = QLabel(" ::")
         self.root = self.parent
         self.id = str(uuid.uuid4())
         self.name = None
         self.meta_layout = QHBoxLayout()
+        #self.setStyleSheet("background-image: url(/Users/donaldstrubler/PycharmProjects/aleksandra/src/img/sample.png); background-attachment: fixed")
         shrink_wrap(self.meta_layout, margin=2, spacing=5)
-        self.ctrl_dots = QLabel(" ::")
+        #self.ctrl_dots = QLabel(" ::")
         self.grab_layout = QVBoxLayout()
         self.icon_layout = QVBoxLayout()
         self.grab_layout.setContentsMargins(0,15,0,0)
@@ -252,7 +306,7 @@ class Constraint(QWidget):
         self.icon = Icon()
 
         self.meta_layout.addWidget(self.color_bar)
-        self.meta_layout.addLayout(self.grab_layout)
+        #self.meta_layout.addLayout(self.grab_layout)
         self.meta_layout.addLayout(self.icon_layout)
 
         self.grab_layout.addWidget( self.ctrl_dots )
@@ -280,9 +334,6 @@ class Constraint(QWidget):
     def set_name(self, nm):
         self._name = nm
         self.title.set_text( self._name )
-
-    
-
 
     
     def _emit_id(self, event):
