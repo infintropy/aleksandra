@@ -1,9 +1,14 @@
 import sys
 from widgets import *
+from fields import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import * 
+from PyQt5.QtWebEngineWidgets import *
 import inspect
 import aleksa
+
+from utils import shrink_wrap
+
 
 
 
@@ -67,29 +72,36 @@ class Choice(Constraint):
 class ImageGrid(Constraint):
     def __init__(self, items=None, **kwargs):
         super(ImageGrid, self).__init__(**kwargs)
-        self.set_color("red", "orange")
-        self.add_img = QToolButton()
-        self.add_img.setText("+")
-        self.title.label.master_layout.addWidget(self.add_img)
-        self.add_img.clicked.connect( self.add_image )
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-    def add_image(self):
-        a = QPushButton('derp')
-        a.setMinimumHeight(18)
-        self.master_layout.addWidget(a)
+        self.button = QToolButton()
+        self.button.setText('DO')
+        self.button.clicked.connect(self.make)
+        self.master_layout.addWidget(self.button)
+
+    def make(self):
+        fil = QFileDialog.getOpenFileName()
+
+        self.image_gallery = ImageGallery()
+
+
+
+        self.image_gallery.populate([fil[0]], 30 )
+
+        self.master_layout.addWidget( self.image_gallery )
+
+
+
         oid = self.root.constraints[self.id]['parent']
-        iliw = self.root.constraints[self.id]['item_widget']
-        iliw.setSizeHint(QSize(0,self.height()+30))
+        
         ilid = self.root.objects[oid]['item_list']
+        self.setMinimumHeight(300)
         self.root.item_lists[ilid]['widget'].update()
-
 
 
 class GIF(Constraint):
     def __init__(self, items=None, **kwargs):
         super(GIF, self).__init__(**kwargs)
-        """
+
         self.movie_screen = QLabel()
         self.movie_screen.setMaximumWidth(300)
         self.movie = QMovie("/Users/donaldstrubler/Downloads/fieri.gif", QByteArray()) 
@@ -98,7 +110,7 @@ class GIF(Constraint):
         self.movie_screen.setMovie(self.movie) 
         self.movie.start()
         self.master_layout.addWidget(self.movie_screen)
-        """
+
 
 class TextLine(Constraint):
     def __init__(self, **kwargs):
@@ -152,6 +164,24 @@ class File(Constraint):
         self.file_path.setPlaceholderText("/path/to/file.txt")
         self.master_layout.addWidget(self.file_path)
 
+
+class Mixcloud(Constraint):
+    def __init__(self, **kwargs):
+        super(Mixcloud, self).__init__(**kwargs)
+        self.embed = """<iframe width="500" height="315" src="https://www.youtube-nocookie.com/embed/zuL687HGfjI" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>"""
+        self.web = QWebEngineView()
+        self.web.settings().setAttribute(QWebEngineSettings.ShowScrollBars, False)
+        self.web.settings().setAttribute(QWebEngineSettings.FullScreenSupportEnabled, True)
+        self.web.page().fullScreenRequested.connect(lambda request: request.accept())
+        self.baseUrl = "local"
+
+        self.web.setHtml(self.embed, QUrl(self.baseUrl))
+
+        self.web.setMaximumWidth(500)
+        self.web.setMaximumHeight(300)
+        self.master_layout.addWidget(self.web)
+    
+
 class Object(Constraint):
     def __init__(self, name=None, **kwargs):
         super(Object, self).__init__(**kwargs)
@@ -178,9 +208,19 @@ class MultipleChoice(Constraint):
         self.widget_1 = QLabel('Whats the answer to this question?')
         self.answers = ButtonChoice()
         self.answers.add_buttons(['dog', 'cat', 'parrot'], adjust="right")
+        self.ans = Dropdown(['trendle', 'derp'])
+        self.num = Integer()
+        self.boo = Boolean()
+        self.float = Float()
 
         self.master_layout.addWidget( self.widget_1 )
-        self.master_layout.addWidget( self.answers,  )
+        self.master_layout.addWidget( self.answers )
+        self.master_layout.addWidget( self.ans )
+        self.master_layout.addWidget( self.num )
+        self.master_layout.addWidget( self.boo )
+        self.master_layout.addWidget( self.float)
+
+
         
 
 

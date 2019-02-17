@@ -2,12 +2,15 @@ import uuid
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import * 
 from PyQt5.QtGui import * 
+
+from fields import *
+
 import six
 import inspect
 import sys
 import os
 import random
-from utils import COLORS, icon
+from utils import COLORS, icon, shrink_wrap
 
 
 ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
@@ -23,63 +26,12 @@ BUTTON_FONT.setPointSize(13)
 
 
 
-class Field(QWidget):
+
+def CreateMenu(QMenu):
     def __init__(self):
-        super(Field, self).__init__()
-        
-        self._value = None
-        self._widget = None
-        self._master_layout = QVBoxLayout()
-        self.setLayout(self._master_layout)
+        super(CreateMenu, self).__init__()
 
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, val):
-        if val:
-            self._value = val
-    
-    def serialize(self):
-        return None
-        #return serialized dict of field
-        #{'field_name'}
-
-class ButtonChoice(Field):
-    def __init__(self):
-        super(Field, self).__init__()
-        self._master_layout = QHBoxLayout()
-        self._button_group = QButtonGroup()
-
-        self._checked_css = "QAbstractButton::checked{background-color:rgba(30,50,100);}"
-        self.setStyleSheet(self._checked_css)
-        self.setLayout(self._master_layout)
-        self._button_group.buttonClicked.connect(self.radio_select)
-
-    def add_buttons(self, button_list, span=False, adjust="left"):
-        self._buttons = {}
-        if adjust=="right":
-            self._master_layout.addStretch()
-        for b in button_list:
-            self._buttons[b] = QToolButton()
-            self._buttons[b].setText( b )
-            self._buttons[b].setCheckable(True)
-            self._master_layout.addWidget(self._buttons[b])
-            self._button_group.addButton(self._buttons[b])
-        if adjust=="left":
-            self._master_layout.addStretch()
-
-    def radio_select(self, button ):
-        print('clicking button %s' %button.text())
-
-
-def shrink_wrap(layout, margin=2, spacing=2):
-    """
-
-    """
-    layout.setContentsMargins(margin,margin,margin,margin)
-    layout.setSpacing(spacing)
+        pass
 
 
 
@@ -108,7 +60,8 @@ class ColorMenu(QMenu):
 
         self.addAction( self.wAction )
 
-
+class Evaluation():
+    pass
 
 
 class Icon(QToolButton):
@@ -122,8 +75,29 @@ class Icon(QToolButton):
         self.setAutoRaise(True)
 
 
+class TagBar(QWidget):
+    def __init__(self, *tags):
+        super(TagBar, self).__init__()   
+        self.master_layout = QHBoxLayout()
+        shrink_wrap(self.master_layout, spacing=0, margin=0)
+        self.setLayout(self.master_layout)
+        self.add = QToolButton()
+        self.add.setText("+")
+        self.add.setStyleSheet("background-color:rgba(10, 30, 40, 10);")
+        #self.master_layout.addWidget( self.add  )
+        self.tags = []
+        #self.add.clicked.connect( self.add_tag )
 
-
+    def add_tag(self, tag='tag'):
+        if not tag:
+            tag = "dawg!"
+        tag_button = QToolButton()
+        tag_button.setAutoRaise(True)
+        self.tags.append(tag_button)
+        tag_button.setStyleSheet("background-color:rgba(40, 60, 20, 100);")
+        tag_button.setText("#" +tag)
+        tag_button.setMinimumHeight(20)
+        self.master_layout.addWidget(tag_button)
 
 class NameBadge(QWidget):
     def __init__(self, label=None):
@@ -135,6 +109,10 @@ class NameBadge(QWidget):
         #self.label.setPopupMode(QToolButton.InstantPopup)
 
 
+        self.tag_bar = TagBar()
+        self.tag_bar.add_tag("test!")
+
+
         self.fav = QToolButton(  )
         self.fav.setText( "<3" )
         self.fav.setCheckable(True)
@@ -144,20 +122,28 @@ class NameBadge(QWidget):
         
         self.req.setCheckable(True)
 
-        self.menu = QMenu()
-        self.act_fav = QAction(self.menu)
-        self.act_fav.setText("make favorite")
 
-        self.menu.addAction(self.act_fav)
-        self.label.setMenu( self.menu )
+
+
         self.cmenu = ColorMenu()
         self.label.setMenu( self.cmenu )
+        self.act_fav = QAction(self.cmenu)
+        self.act_fav.setText("make favorite")
+
+        self.act_tag = QAction(self.cmenu)
+        self.act_tag.setText("add tag")
+
+        self.cmenu.addAction(self.act_fav)
+        self.cmenu.addAction(self.act_tag)
+
+        self.act_tag.triggered.connect(self.tag_bar.add_tag)
 
 
 
         self.label.setText("button")
         self.master_layout = QHBoxLayout()
         self.master_layout.addWidget(self.label)
+        self.master_layout.addWidget(self.tag_bar)
 
 
         self.master_layout.addStretch()
@@ -173,15 +159,8 @@ class NameBadge(QWidget):
         self.favorite = QToolButton()
         self.favorite.setText("*")
 
-
-
-
     def add_favorite(self):
         pass
-
-
-
-
 
 
 class EditLabel(QStackedWidget):
@@ -296,7 +275,6 @@ class Constraint(QWidget):
         self.id = str(uuid.uuid4())
         self.name = None
         self.meta_layout = QHBoxLayout()
-        #self.setStyleSheet("background-image: url(/Users/donaldstrubler/PycharmProjects/aleksandra/src/img/sample.png); background-attachment: fixed")
         shrink_wrap(self.meta_layout, margin=2, spacing=5)
         #self.ctrl_dots = QLabel(" ::")
         self.grab_layout = QVBoxLayout()

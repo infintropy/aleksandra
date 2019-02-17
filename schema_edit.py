@@ -1,6 +1,7 @@
 from __future__ import print_function
 import sys
 import inspect
+import time
 
 from functools import partial
 from PyQt5.QtCore import *
@@ -12,6 +13,8 @@ import theme
 import six
 from constraints import *
 from widgets import *
+from utils import EmojiUtils, ROOT_DIR
+import planner
 
 import qdarkstyle
 
@@ -186,7 +189,7 @@ class Window(QMainWindow):
         for c, w in six.iteritems(constraint_widgets()):
             self.cmd[c] = w
     
-
+        self.emoji_util = EmojiUtils()
 
         self.context_object = None
 
@@ -232,7 +235,7 @@ class Window(QMainWindow):
         self.setMinimumWidth(700)
         self.setMinimumHeight(500)
 
-        self.master_layout = QVBoxLayout()
+        self.master_layout = QHBoxLayout()
         #self.il = ItemList(self)
 
     
@@ -269,11 +272,12 @@ class Window(QMainWindow):
         
 
 
-
-
+        self.planner = planner.DayItem(self)
+        self.planner.setMaximumWidth(200)
  
-        self.master_layout.addWidget( self.logo )
+        #self.master_layout.addWidget( self.logo )
         self.master_layout.addWidget( self.scroll)
+        #self.master_layout.addWidget(self.planner)                                                                                                                                                                                                                                                              
         self.main.setLayout( self.master_layout )
 
 
@@ -447,12 +451,33 @@ if __name__ == '__main__':
     app.setStyle("Fusion")
 
 
+    splash_pix = QPixmap('%s/src/img/splash.png' %ROOT_DIR)
+
+    splash = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
+    splash.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+    splash.setEnabled(False)
+    # splash = QSplashScreen(splash_pix)
+    # adding progress bar
+    #progressBar = QProgressBar(splash)
+    #progressBar.setMaximum(10)
+    #progressBar.setGeometry(0, splash_pix.height() - 50, splash_pix.width(), 20)
+
+    # splash.setMask(splash_pix.mask())
+
+    splash.show()
+    #splash.showMessage("<h1><font color='green'>Welcome BeeMan!</font></h1>", Qt.AlignTop | Qt.AlignCenter, Qt.black)
+
+
+
     # setup stylesheet
     #app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     theme.dark(app)
 
 
     window.show()
+    
+    splash.finish(window)
+
 
     app.exec_()
 
