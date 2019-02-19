@@ -11,7 +11,14 @@ from PyQt5.QtWidgets import *
 import uuid
 import theme
 import six
-from constraints import *
+
+from constraints.list import List
+from constraints.choice import Choice
+from constraints.text_block import TextBlock
+from constraints.journal import Journal
+from constraints.multiple_choice import MultipleChoice
+from constraints.number import Number
+
 from widgets import *
 from utils import EmojiUtils, ROOT_DIR
 import planner
@@ -90,6 +97,14 @@ class ItemList(QWidget):
 
         self.title.edited.connect(self._update_upstream_title)
 
+        self.sum = QToolButton()
+        self.valid = QToolButton()
+
+        self.title.label.master_layout.addWidget( self.sum )
+        self.title.label.master_layout.addWidget( self.valid )
+
+
+
     #reimplementations of QWidget base class and beyond.
     @property
     def object_link(self):
@@ -99,6 +114,8 @@ class ItemList(QWidget):
             return objlink
         except:
             return None
+
+    
 
 
     def contextMenuEvent(self, event):
@@ -114,6 +131,9 @@ class ItemList(QWidget):
         if itc>0:
             self.object_link.expand.setIcon(QIcon())
             self.object_link.expand.setText(str(itc))
+
+    def update_summary(self):
+        pass
 
 
     def _update_upstream_title(self, title):

@@ -250,7 +250,9 @@ class ObjWidget(QWidget):
     def _emit_id(self, event):
         self.root.show_object_item_list(self)
         print("(%s) level: %s" %(self.level, self.id ))
+        self.validate_children()
         self.mouseReleaseEvent(event)
+        
 
     def make_list(self):
         self.root.show_object_item_list(self, make=True)
@@ -261,11 +263,23 @@ class ObjWidget(QWidget):
     def add_constraint(self, typ="List"):
         cons = self.root.add_constraint(obj=self, typ=typ)
 
+    def get_constraints(self):
+        print('THESE ARE THE CONSTRAINTS')
+        return [v['widget'] for i,v in self.root.constraints.items() if v['parent'] == self.id]
+
+    def validate_children(self):
+        for const in self.get_constraints():
+            print(const.validate())
+
 class Constraint(QWidget):
     def __init__(self, parent=None, level=9000, **kwargs):
         super(Constraint, self).__init__(**kwargs)
         self.color_bar = QWidget()
         self.level = level
+
+        
+
+
         #print("Constraint being created, level %d" %self.level)
         self.color_bar.setFixedWidth(6)
         self.set_color("orange")
@@ -312,6 +326,10 @@ class Constraint(QWidget):
     def set_name(self, nm):
         self._name = nm
         self.title.set_text( self._name )
+
+    def validate(self):
+        #reimplement in subclass
+        return True
 
     
     def _emit_id(self, event):
