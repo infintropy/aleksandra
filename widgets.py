@@ -15,7 +15,7 @@ from utils import COLORS, icon, shrink_wrap
 
 ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
 #ICON_BASE = "C:/Users/dstrubler/Downloads/EmojiOne_4.0_128x128_png/EmojiOne_4.0_128x128_png"
-ICONS = os.listdir( ICON_BASE )
+#ICONS = os.listdir( ICON_BASE )
 
 #########
 ### FONTS
@@ -68,8 +68,8 @@ class Icon(QToolButton):
     def __init__(self):
         super(Icon, self).__init__()
         self.setText("i")
-        self.ic = QIcon("%s/%s" %(ICON_BASE, random.choice(ICONS)))
-        #self.ic = QIcon()
+        #self.ic = QIcon("%s/%s" %(ICON_BASE, random.choice(ICONS)))
+        self.ic = QIcon()
         self.setIcon( self.ic )
         self.setIconSize(QSize(30,30))
         self.setAutoRaise(True)
@@ -110,7 +110,7 @@ class NameBadge(QWidget):
 
 
         self.tag_bar = TagBar()
-        self.tag_bar.add_tag("test!")
+        #self.tag_bar.add_tag("test!")
 
 
         self.fav = QToolButton(  )
@@ -277,7 +277,7 @@ class Constraint(QWidget):
         self.color_bar = QWidget()
         self.level = level
 
-        
+        self.fields = []
 
 
         #print("Constraint being created, level %d" %self.level)
@@ -316,12 +316,23 @@ class Constraint(QWidget):
         self.master_layout.addWidget(self.title, stretch=0)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         #self.mouseReleaseEvent = self._emit_id
+        self.title.edited.connect(self._name_changed)
 
     def set_color(self, *colors):
         r = sum([COLORS[c][0] for c in colors])/len(colors)
         g = sum([COLORS[c][1] for c in colors])/len(colors)
         b = sum([COLORS[c][2] for c in colors])/len(colors)
         self.color_bar.setStyleSheet("background-color:rgb(%d, %d, %d);border-radius:3px" %(r,g,b))
+
+
+    def _name_changed(self):
+        self.name = self.title.label.label.text()
+
+    def save(self):
+        for field in self.fields:
+            print("%s - %s" %('field', field.value()))
+
+
 
     def set_name(self, nm):
         self._name = nm

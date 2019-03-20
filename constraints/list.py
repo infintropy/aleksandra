@@ -10,7 +10,7 @@ class List(Constraint):
         self.ls = {}
         self.list_height = 0
         self.widget_1 = QListWidget()
-        self.widget_1.setStyleSheet("border-radius:10px;")
+        #self.widget_1.setStyleSheet("border-radius:10px;")
         self.widget_1.setMaximumHeight(self.list_height)
         self.widget_1.setSizePolicy( QSizePolicy.Expanding, QSizePolicy.Minimum )
 
@@ -41,6 +41,6 @@ class List(Constraint):
         iliw.setSizeHint(QSize(0,self.height()+35))
         self.list_height+=35
         
-        self.widget_1.setMaximumHeight(self.list_height+2)
+        self.widget_1.setMaximumHeight(self.list_height+10)
         ilid = self.root.objects[oid]['item_list']
         self.root.item_lists[ilid]['widget'].update()

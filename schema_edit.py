@@ -18,12 +18,14 @@ from constraints.text_block import TextBlock
 from constraints.journal import Journal
 from constraints.multiple_choice import MultipleChoice
 from constraints.number import Number
+from constraints.launch import *
+from constraints.object import *
+from constraints.link import *
 
 from widgets import *
 from utils import EmojiUtils, ROOT_DIR
 import planner
 
-import qdarkstyle
 
 
 
@@ -58,11 +60,33 @@ class CreationMenu(QMenu):
             self.act[k].setText( k )
 
 
+class Sidebar(QWidget):
+    def __init__(self):
+        super(Sidebar, self).__init__()
+
+        self.master_layout = QVBoxLayout()
+        shrink_wrap(self.master_layout, 2, 10)
+        self.header = QLabel('Aleksandra')
+        self.item1 = QToolButton()
+        self.item1.setText('Today')
+
+        self.root_list = QListWidget()
+        self.root_list.addItems(["Today", "This Week", "This Year"])
+        self.setMaximumWidth(120)
+
+
+        self.master_layout.addWidget(self.header)
+        self.master_layout.addWidget(self.root_list)
+
+        self.setLayout(self.master_layout)
+        #self.master_layout.addStretch(1)
+
+
 class ItemList(QWidget):
     def __init__(self, parent=None, level=9000):
 
         super(ItemList, self).__init__()
-
+        self._name = None
         self.level = level
         self.master_layout = QVBoxLayout()
         self.id = str(uuid.uuid4())
@@ -73,7 +97,7 @@ class ItemList(QWidget):
         self.root = self.parent
         self.ls = {}
         #self.setFixedWidth(500)
-        self.setMinimumWidth(350)
+        self.setMinimumWidth(450)
         self.setMaximumWidth(500)
         print('init of imtemlist. level: %d' %self.level)
         self.setSizePolicy( QSizePolicy.Minimum, QSizePolicy.Expanding )
@@ -103,6 +127,14 @@ class ItemList(QWidget):
         self.title.label.master_layout.addWidget( self.sum )
         self.title.label.master_layout.addWidget( self.valid )
 
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, nm):
+        self._name = nm
+        self.title.label.label.setText(nm)
 
 
     #reimplementations of QWidget base class and beyond.
@@ -209,7 +241,7 @@ class Window(QMainWindow):
         for c, w in six.iteritems(constraint_widgets()):
             self.cmd[c] = w
     
-        self.emoji_util = EmojiUtils()
+        #self.emoji_util = EmojiUtils()
 
         self.context_object = None
 
@@ -233,6 +265,9 @@ class Window(QMainWindow):
         self.root_list = List()
         self.root_obj = ObjWidget()
 
+        self.root_item_list.title.set_text("Today")
+
+
         self.add_object(obj=self.root_obj, constraint=self.root_list)
         self.add_constraint(constraint=self.root_list, obj=None)
 
@@ -252,8 +287,8 @@ class Window(QMainWindow):
 
 
 
-        self.setMinimumWidth(700)
-        self.setMinimumHeight(500)
+        self.setMinimumWidth(900)
+        self.setMinimumHeight(700)
 
         self.master_layout = QHBoxLayout()
         #self.il = ItemList(self)
@@ -293,11 +328,14 @@ class Window(QMainWindow):
 
 
         self.planner = planner.DayItem(self)
-        self.planner.setMaximumWidth(200)
+        self.planner.setMaximumWidth(400)
+
+        self.sidebar = Sidebar()
+        self.master_layout.addWidget(self.sidebar)
  
         #self.master_layout.addWidget( self.logo )
         self.master_layout.addWidget( self.scroll)
-        #self.master_layout.addWidget(self.planner)                                                                                                                                                                                                                                                              
+        #self.master_layout.addWidget(self.planner)
         self.main.setLayout( self.master_layout )
 
 
@@ -307,7 +345,8 @@ class Window(QMainWindow):
 
 
 
-        self.add_item_list(obj=self.root_obj)
+        il = self.add_item_list(obj=self.root_obj)
+        il.title.set_text("Today")
         #self.add_constraint(obj=self.root_obj)
 
         #self.end_spacer = QWidget()

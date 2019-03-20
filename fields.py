@@ -67,18 +67,26 @@ class LineEdit(Field):
     def __init__(self):
         super(LineEdit, self).__init__()
 
+        self._widget = QLineEdit()
+        self._master_layout.addWidget(self._widget)
+
+    def value(self):
+        return self._widget.text()
+
 class Dropdown(Field):
-    def __init__(self, items):
+    def __init__(self, items=None):
         super(Dropdown, self).__init__()
         self._widget = QComboBox()
         self._master_layout.addWidget( self._widget )
         if items:
             self._widget.addItems(items)
 
-        self._widget.currentIndexChanged.connect(self.derp)
 
-    def derp(self, ev):
-        print('lololol')
+    def add_items(self, items):
+        self._widget.addItems(items)
+
+    def value(self):
+        return self._widget.currentText()
 
 class Integer(Field):
     def __init__(self):
@@ -86,12 +94,16 @@ class Integer(Field):
         self._widget = QSpinBox()
         self._master_layout.addWidget(self._widget)
 
+
 class Boolean(Field):
     def __init__(self):
         super(Boolean, self  ).__init__()
 
         self._widget = QCheckBox()
         self._master_layout.addWidget(self._widget)
+
+    def value(self):
+        return self._widget.isChecked()
 
 class Float(Field):
     def __init__(self):
