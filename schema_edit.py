@@ -21,7 +21,9 @@ from constraints.number import Number
 from constraints.launch import *
 from constraints.object import *
 from constraints.link import *
+from constraints.skidoo import *
 
+import table
 from widgets import *
 from utils import EmojiUtils, ROOT_DIR
 import planner
@@ -268,6 +270,17 @@ class Window(QMainWindow):
         self.root_item_list.title.set_text("Today")
 
 
+        self.table_model =  table.TableModel(items=[{"name": "Donald", "address": "Derp1"},{"name": "Donald", "address": "Derp2"}])
+        self.table_view = QTableView()
+        # self.table_view.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.table_view.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table_view.setModel( self.table_model )
+
+
+
+
+
         self.add_object(obj=self.root_obj, constraint=self.root_list)
         self.add_constraint(constraint=self.root_list, obj=None)
 
@@ -282,6 +295,11 @@ class Window(QMainWindow):
 
         self.menuBar().addMenu( self.file_menu )
         self.stack_level = {}
+
+
+
+
+
 
 
 
@@ -330,11 +348,22 @@ class Window(QMainWindow):
         self.planner = planner.DayItem(self)
         self.planner.setMaximumWidth(400)
 
+
+
+
+        self.tabs = QTabWidget()
+        self.pypanel = Sidecar()
+        self.tabs.addTab( self.pypanel, "Python" )
+        self.tabs.addTab( self.table_view, "Table" )
+
+
+
         self.sidebar = Sidebar()
         self.master_layout.addWidget(self.sidebar)
  
         #self.master_layout.addWidget( self.logo )
         self.master_layout.addWidget( self.scroll)
+        self.master_layout.addWidget( self.tabs )
         #self.master_layout.addWidget(self.planner)
         self.main.setLayout( self.master_layout )
 
@@ -347,6 +376,30 @@ class Window(QMainWindow):
 
         il = self.add_item_list(obj=self.root_obj)
         il.title.set_text("Today")
+
+        hb = self.add_constraint(obj=self.root_obj, typ="Midnight", level=9001)
+        il.add_item(constraint=hb)
+
+        hb = self.add_constraint(obj=self.root_obj, typ="Dawn", level=9001)
+        il.add_item(constraint=hb)
+
+        hb = self.add_constraint(obj=self.root_obj, typ="Morning", level=9001)
+        il.add_item(constraint=hb)
+
+        hb = self.add_constraint(obj=self.root_obj, typ="MidDay", level=9001)
+        il.add_item(constraint=hb)
+
+        hb = self.add_constraint(obj=self.root_obj, typ="Dusk", level=9001)
+        il.add_item(constraint=hb)
+
+        hb = self.add_constraint(obj=self.root_obj, typ="Evening", level=9001)
+        il.add_item(constraint=hb)
+        for i in range(6):
+            c = self.add_constraint(obj=self.root_obj, typ="Object", level=9001)
+            c.set_name(str(i))
+            c.obj.label.set_text("phase " +str(i))
+            #il.add_item(constraint=c)
+
         #self.add_constraint(obj=self.root_obj)
 
         #self.end_spacer = QWidget()
@@ -355,7 +408,7 @@ class Window(QMainWindow):
 
         
         #self.mil_col_widget.addWidget(None)
-
+        self.reset_table()
 
     def get_object(self, id=None):                                                      
         pass
@@ -391,7 +444,11 @@ class Window(QMainWindow):
 
 
  
-
+    def reset_table(self):
+        dtr = [{'address': v['widget'].title.text() ,'name': v['parent']} for k,v in self.constraints.items()]
+        self.table_model = table.TableModel(
+            items=dtr)
+        self.table_view.setModel(self.table_model)
 
     def add_item_list(self, item_list=None, obj=None, index=0):
         '''
@@ -473,6 +530,7 @@ class Window(QMainWindow):
         self.constraints[cons.id]['parent'] = obj.id
         
         item_list = self.objects[obj.id]['item_list']
+        self.reset_table()
         return cons
 
 

@@ -32,7 +32,7 @@ class LaunchCommand(Constraint):
         self.widget_1.setText('launch app')
         self.url = QLineEdit()
         self.url.setText("http://google.com")
-        self.sdc = Sidecar()
+
         self.master_layout.addWidget(self.widget_1)
         self.master_layout.addWidget(self.url)
         self.master_layout.addWidget(self.lang)
