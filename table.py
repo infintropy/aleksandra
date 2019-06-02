@@ -22,7 +22,7 @@ class TableModel(QAbstractTableModel):
 
     def columnCount(self, index=QModelIndex()):
         """ Returns the number of columns the model holds. """
-        return 2
+        return len(self.items[0])
 
     def data(self, index, role=Qt.DisplayRole):
         """ Depending on the index and role given, return data. If not
@@ -36,13 +36,8 @@ class TableModel(QAbstractTableModel):
             return None
 
         if role == Qt.DisplayRole:
-            name = self.items[index.row()]["name"]
-            address = self.items[index.row()]["address"]
+            name = self.items[index.row()][index.column()]
 
-            if index.column() == 0:
-                return name
-            elif index.column() == 1:
-                return address
 
         return None
 
@@ -51,11 +46,9 @@ class TableModel(QAbstractTableModel):
         if role != Qt.DisplayRole:
             return None
 
+        labels = ["dog", "fart", "tree"]
         if orientation == Qt.Horizontal:
-            if section == 0:
-                return "Name"
-            elif section == 1:
-                return "Address"
+            return labels[section]
 
         return None
 
@@ -108,3 +101,136 @@ class TableModel(QAbstractTableModel):
             return Qt.ItemIsEnabled
         return Qt.ItemFlags(QAbstractTableModel.flags(self, index) |
                             Qt.ItemIsEditable)
+
+
+
+        @classmethod
+        def from_dict(cls, dct):
+            d = [["dog", "dig"],['drim', 'dram']]
+            return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    class TableModel2(QAbstractTableModel):
+
+        def __init__(self, items=None, parent=None):
+            super(TableModel, self).__init__(parent)
+
+            if items is None:
+                self.items = []
+            else:
+                self.items = items
+
+        def rowCount(self, index=QModelIndex()):
+            """ Returns the number of rows the model holds. """
+            return len(self.items)
+
+        def columnCount(self, index=QModelIndex()):
+            """ Returns the number of columns the model holds. """
+            return 2
+
+        def data(self, index, role=Qt.DisplayRole):
+            """ Depending on the index and role given, return data. If not
+                returning data, return None (PySide equivalent of QT's
+                "invalid QVariant").
+            """
+            if not index.isValid():
+                return None
+
+            if not 0 <= index.row() < len(self.items):
+                return None
+
+            if role == Qt.DisplayRole:
+                name = self.items[index.row()]["name"]
+                address = self.items[index.row()]["address"]
+
+                if index.column() == 0:
+                    return name
+                elif index.column() == 1:
+                    return address
+
+            return None
+
+        def headerData(self, section, orientation, role=Qt.DisplayRole):
+            """ Set the headers to be displayed. """
+            if role != Qt.DisplayRole:
+                return None
+
+            if orientation == Qt.Horizontal:
+                if section == 0:
+                    return "Name"
+                elif section == 1:
+                    return "Address"
+
+            return None
+
+        def insertRows(self, position, rows=1, index=QModelIndex()):
+            """ Insert a row into the model. """
+            self.beginInsertRows(QModelIndex(), position, position + rows - 1)
+
+            for row in range(rows):
+                self.items.insert(position + row, {"name": "", "address": ""})
+
+            self.endInsertRows()
+            return True
+
+        def removeRows(self, position, rows=1, index=QModelIndex()):
+            """ Remove a row from the model. """
+            self.beginRemoveRows(QModelIndex(), position, position + rows - 1)
+
+            del self.items[position:position + rows]
+
+            self.endRemoveRows()
+            return True
+
+        def setData(self, index, value, role=Qt.EditRole):
+            """ Adjust the data (set it to <value>) depending on the given
+                index and role.
+            """
+            if role != Qt.EditRole:
+                return False
+
+            if index.isValid() and 0 <= index.row() < len(self.items):
+                address = self.items[index.row()]
+                if index.column() == 0:
+                    address["name"] = value
+                elif index.column() == 1:
+                    address["address"] = value
+                else:
+                    return False
+
+                self.dataChanged.emit(index, index)
+                return True
+
+            return False
+
+        def flags(self, index):
+            """ Set the item flags at the given index. Seems like we're
+                implementing this function just to see how it's done, as we
+                manually adjust each tableView to have NoEditTriggers.
+            """
+            if not index.isValid():
+                return Qt.ItemIsEnabled
+            return Qt.ItemFlags(QAbstractTableModel.flags(self, index) |
+                                Qt.ItemIsEditable)
+
+

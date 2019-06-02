@@ -73,7 +73,7 @@ class Sidebar(QWidget):
         self.item1.setText('Today')
 
         self.root_list = QListWidget()
-        self.root_list.addItems(["Today", "This Week", "This Year"])
+        self.root_list.addItems(["Today", "This Week", "This Year", "Derpfinity"])
         self.setMaximumWidth(120)
 
 
@@ -82,6 +82,57 @@ class Sidebar(QWidget):
 
         self.setLayout(self.master_layout)
         #self.master_layout.addStretch(1)
+
+class ItemListWidget(QWidget):
+    def __init__(self):
+        super(ItemListWidget, self).__init__()
+        self._master_layout = QVBoxLayout()
+        shrink_wrap(self.master_layout, spacing=5)
+
+
+class ItemList2(object):
+    def __init__(self, parent=None, level=9000):
+        self._widget = QWidget()
+        self._name = None
+        self._level = level
+
+        self._id = str(uuid.uuid4())
+        self._parent = parent
+
+        self.setLayout( self.master_layout )
+        self._lw = QListWidget()
+        self._root = self.parent
+        self.ls = {}
+        #self.setFixedWidth(500)
+        self.setMinimumWidth(450)
+        self.setMaximumWidth(500)
+        print('init of imtemlist. level: %d' %self.level)
+        self.setSizePolicy( QSizePolicy.Minimum, QSizePolicy.Expanding )
+        self.title = EditLabel()
+        self.title_font = QFont()
+        self.title_font.setPointSize(18)
+        self.title.label.label.setFont(self.title_font)
+        self.title.label.label.setMinimumHeight(25)
+        self.title.setMinimumHeight(20)
+
+        self.title.set_text( str(self.level) )
+
+        self.master_layout.addWidget( self.title )
+        self.master_layout.addWidget( self.lw)
+        self.lw.setDragDropMode(QAbstractItemView.InternalMove)
+        self.lw.setResizeMode(QListView.Adjust)
+
+        self.lw.itemDoubleClicked.connect( self.dc )
+
+
+
+        self.title.edited.connect(self._update_upstream_title)
+
+        self.sum = QToolButton()
+        self.valid = QToolButton()
+
+        self.title.label.master_layout.addWidget( self.sum )
+        self.title.label.master_layout.addWidget( self.valid )
 
 
 class ItemList(QWidget):
@@ -256,7 +307,7 @@ class Window(QMainWindow):
         self.setCentralWidget(self.main)
         self.logo = QLabel("aleksandra")
         self.logo_font = QFont()
-        self.logo_font.setPointSize(13) 
+        self.logo_font.setPointSize(17)
         self.logo_font.setFamily("Courier")
         self.logo.setFont(self.logo_font)
 

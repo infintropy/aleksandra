@@ -1,38 +1,17 @@
 import uuid
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import * 
-from PyQt5.QtGui import * 
-
+from PyQt5.QtGui import *
 from fields import *
-
-import six
-import inspect
-import sys
-import os
-import random
-from utils import COLORS, icon, shrink_wrap
-
+from utils import COLORS
+from utils import icon
+from utils import shrink_wrap
 
 ICON_BASE = "/Users/donaldstrubler/PycharmProjects/nukemoji/lib_128/"
-#ICON_BASE = "C:/Users/dstrubler/Downloads/EmojiOne_4.0_128x128_png/EmojiOne_4.0_128x128_png"
-#ICONS = os.listdir( ICON_BASE )
+# ICON_BASE = "C:/Users/dstrubler/Downloads/EmojiOne_4.0_128x128_png/EmojiOne_4.0_128x128_png"
+# ICONS = os.listdir( ICON_BASE )
 
-#########
-### FONTS
-#########
 BUTTON_FONT = QFont()
 BUTTON_FONT.setFamily('Helvetica')
 BUTTON_FONT.setPointSize(13)
-
-
-
-
-def CreateMenu(QMenu):
-    def __init__(self):
-        super(CreateMenu, self).__init__()
-
-        pass
-
 
 
 class ColorMenu(QMenu):
@@ -40,27 +19,24 @@ class ColorMenu(QMenu):
         super(ColorMenu, self).__init__()
 
         self.color_bar = QToolBar()
-
         for color, vals in COLORS.items():
             act = QToolButton()
 
-            pix = QPixmap(9,9)
-            pix.fill( QColor(vals[0], vals[1], vals[2]) )
-            icon = QIcon(pix)
-            act.setIcon( icon )
+            pix = QPixmap(9, 9)
+            pix.fill(QColor(vals[0], vals[1], vals[2]))
+            ic = QIcon(pix)
+            act.setIcon(ic)
 
-
-            self.color_bar.addWidget(act )
+            self.color_bar.addWidget(act)
         
-        self.color_bar.setIconSize(QSize(9,9))
-
+        self.color_bar.setIconSize(QSize(9, 9))
 
         self.wAction = QWidgetAction(self)
         self.wAction.setDefaultWidget(self.color_bar)
+        self.addAction(self.wAction)
 
-        self.addAction( self.wAction )
 
-class Evaluation():
+class Evaluation(object):
     pass
 
 
@@ -68,10 +44,10 @@ class Icon(QToolButton):
     def __init__(self):
         super(Icon, self).__init__()
         self.setText("i")
-        #self.ic = QIcon("%s/%s" %(ICON_BASE, random.choice(ICONS)))
+        # self.ic = QIcon("%s/%s" %(ICON_BASE, random.choice(ICONS)))
         self.ic = QIcon()
-        self.setIcon( self.ic )
-        self.setIconSize(QSize(30,30))
+        self.setIcon(self.ic)
+        self.setIconSize(QSize(30, 30))
         self.setAutoRaise(True)
 
 
@@ -84,9 +60,9 @@ class TagBar(QWidget):
         self.add = QToolButton()
         self.add.setText("+")
         self.add.setStyleSheet("background-color:rgba(10, 30, 40, 10);")
-        #self.master_layout.addWidget( self.add  )
+        # self.master_layout.addWidget( self.add  )
         self.tags = []
-        #self.add.clicked.connect( self.add_tag )
+        # self.add.clicked.connect( self.add_tag )
 
     def add_tag(self, tag='tag'):
         if not tag:
@@ -95,9 +71,10 @@ class TagBar(QWidget):
         tag_button.setAutoRaise(True)
         self.tags.append(tag_button)
         tag_button.setStyleSheet("background-color:rgba(40, 60, 20, 100);")
-        tag_button.setText("#" +tag)
+        tag_button.setText("#" + tag)
         tag_button.setMinimumHeight(20)
         self.master_layout.addWidget(tag_button)
+
 
 class NameBadge(QWidget):
     def __init__(self, label=None):
